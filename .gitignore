@@ -1,0 +1,10 @@
+.DS_Store
+sdkconfig.old
+sdkconfig
+dependencies.lock
+
+build/
+managed_components/
+
+.vscode/
+.eclipse/
