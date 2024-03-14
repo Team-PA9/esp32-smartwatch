@@ -3,7 +3,8 @@
  * File:        main.c
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Author:      PA9 TEAM
- * Modified:    11/03/2024
+ * Modified:    14/03/2024
+ * Status:      In progress
  * Framework:   ESP32 (Wrover Kit) v5.1.2
  * -------------------------------------------------------------------------- */
 
@@ -14,8 +15,14 @@
 #include <stdio.h>
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
 #include "bsp/esp_wrover_kit.h"
+#include "driver/gpio.h"
+#include "driver/gptimer.h"
 #include "esp_log.h"
+#include "esp_system.h"
+#include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "lvgl.h"
 #include "sdkconfig.h"
@@ -44,75 +51,25 @@ extern bool LSM6DSO_OK, LIS2MDL_OK;
 /* -----------------------------------------------------------------------------
  * PART 2 : Global Handlers
  * -------------------------------------------------------------------------- */
-TaskHandle_t xHandle_lvgl = NULL;
-TaskHandle_t xHandle_whoami = NULL;
-TaskHandle_t xHandle_getdata = NULL;
+QueueSetHandle_t QueueSet_Sem = NULL;
+SemaphoreHandle_t xSem_acq = NULL;
+SemaphoreHandle_t xSem_display = NULL;
+TaskHandle_t xHdl_ME = NULL;
+TaskHandle_t xHdl_whoami = NULL;
 
 
 /* -----------------------------------------------------------------------------
- * PART 3 : Private Functions
+ * PART 3 : Private Functions Declarations
  * -------------------------------------------------------------------------- */
-
-/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
- * Task : LVGL initialize and handle
- * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-void lvgl_task(void *pvParameter) {
-    // Initialize UI
-    bsp_display_lock(0);
-    ui_init();
-    bsp_display_unlock();
-
-    while(1) {
-        // Handle LVGL tasks
-        lv_task_handler();
-        // Delay for a short period
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
-
-/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
- * Task : Get data from sensors
- * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-void get_data_task(void *args) {
-    while (1) {
-        if (LSM6DSO_OK == 1) { get_LSM6DSO(); }
-        if (LIS2MDL_OK == 1) { get_LIS2MDL(); }
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}
-
-/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
- * Task : WhoAmI, check if sensor is detected on I2C
- * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-void whoami_task(void *args) {
-    static const char *TAG = "WhoAmI";
-
-    while (1) {
-        ESP_LOGI(TAG, "Master check sensors ---");
-
-        // LSM6DSO ID
-        lsm6dso_device_id_get(&lsm6dso_dev_ctx, &LSM6DSO_whoamI);
-        if (LSM6DSO_whoamI != LSM6DSO_ID) { ESP_LOGE(TAG, "LSM6DSO not find"); }
-        else {
-            printf("Product ID= %d \n", LSM6DSO_whoamI);
-            LSM6DSO_OK = 1;
-            }
-
-        // LIS2MDL ID
-        lis2mdl_device_id_get(&lis2mdl_dev_ctx, &LIS2MDL_whoamI);
-        if (LIS2MDL_whoamI != LIS2MDL_ID) { ESP_LOGE(TAG, "LIS2MDL not find"); }
-        else {
-            printf("Product ID= %d \n", LIS2MDL_whoamI);
-            LIS2MDL_OK = 1;
-            }
-
-        xTaskCreate(get_data_task, "get_data_task", 2048, NULL, 1, &xHandle_getdata);
-
-        ESP_LOGI(TAG, "End of check ---");
-        vTaskDelete(xHandle_whoami);
-        fflush(stdout);
-  }
-}
+void ME(void *pvParameter);
+void display_timer_init(uint64_t period);
+static bool display_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx);
+void acq_timer_init(uint64_t period);
+static bool acq_timer_callback(gptimer_handle_t timer, const
+                               gptimer_alarm_event_data_t *edata,
+                               void *user_ctx);
 
 
 /* -----------------------------------------------------------------------------
@@ -122,30 +79,147 @@ void app_main(void) {
     ESP_LOGI(TAG, "Started app_main() ---");
 
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-    // Step 0: Initialize Display & LVGL
+    // Step 1: Initialization
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-    printf("Initialize display and LVGL ...\n");
-    display = bsp_display_start();
-    // Rotate display 90 degrees (landscape mode)
-    bsp_display_rotate(display, 90);
-    lv_disp_set_rotation(display, LV_DISP_ROT_90);
-    // Turn on display backlight
-    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
-    // Create FreeRTOS task for LVGL
-    xTaskCreate(&lvgl_task, "lvgl_task", 4096, NULL, 1, &xHandle_lvgl);
-
-    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-    // Step 1: Initialize I2C & Sensors
-    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-    printf("Initialize I2C master... \n");
+    // Step 1.1 : Peripherals
+    printf("Initialize I2C master and sensors... \n");
     ESP_ERROR_CHECK(i2c_master_init());
-    printf("Initialize LSM6DSO sensor... \n");
     ESP_ERROR_CHECK(lsm6dso_init());
-    printf("Initialize LIS2MDL sensor... \n");
 	ESP_ERROR_CHECK(lis2mdl_init());
-    // Create whoamI task for sensors on I2C
-    xTaskCreate(whoami_task, "whoami_task", 2048, NULL, 1, &xHandle_whoami);
+    ESP_ERROR_CHECK(whoami_check());
 
+    // Step 1.2 : Semaphore, Queue
+    printf("Initialize Semaphore and Queue... \n");
+    xSem_display = xSemaphoreCreateBinary();
+    xSem_acq = xSemaphoreCreateBinary();
+    QueueSet_Sem = xQueueCreateSet(2);
+    xQueueAddToSet(xSem_display, QueueSet_Sem);
+    xQueueAddToSet(xSem_acq, QueueSet_Sem);
+
+    // Step 1.3 : Display, LVGL & UI
+    printf("Initialize display, LVGL and UI...\n");
+    display = bsp_display_start();
+    bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
+    lv_disp_set_rotation(display, LV_DISP_ROT_90);
+    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
+    bsp_display_lock(0);
+    ui_init();
+    bsp_display_unlock();
+
+    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+    // Step 2: Tasks installation
+    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+    xTaskCreate(ME, "ME", 4096, NULL, 1, &xHdl_ME);
+    
+    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+    // Step 3: Interrupts Routines and Timers IRQ
+    // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+    acq_timer_init(1000 * 1000);    // Acquisition period : 1s
+    display_timer_init(1000 * 300); // Display period : 300ms
+    
     ESP_LOGI(TAG, "Ended app_main() ---");
     fflush(stdout);
+}
+
+/* -----------------------------------------------------------------------------
+ * PART 5 : ME Task
+ * -------------------------------------------------------------------------- */
+void ME(void *pvParameter) {
+    char *TAG = "ME";
+    QueueSetMemberHandle_t xSemReceived;
+
+    while (1) {
+        // Wait for a semaphore to be available
+        xSemReceived = xQueueSelectFromSet(QueueSet_Sem, portMAX_DELAY);
+        // Check which semaphore was received
+        if (xSemReceived == xSem_acq) {
+            ESP_LOGW(TAG, "Acquire data from sensors");
+            xSemaphoreTake(xSem_acq, 0);
+            if (LSM6DSO_OK == 1) { get_LSM6DSO(); }
+            if (LIS2MDL_OK == 1) { get_LIS2MDL(); }
+        } 
+        else if (xSemReceived == xSem_display) {
+            ESP_LOGW(TAG, "Update display");
+            xSemaphoreTake(xSem_display, 0);
+            lv_task_handler();
+        }
+    }
+}
+
+/* -----------------------------------------------------------------------------
+ * PART 6 : Private Functions & Tasks Definitions
+ * -------------------------------------------------------------------------- */
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : display_timer_init('period in µs')
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+void display_timer_init(uint64_t period) {
+    gptimer_handle_t timer_display_hdl = NULL;
+    gptimer_config_t timer_display_cfg = {
+        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+        .direction = GPTIMER_COUNT_UP,
+        .resolution_hz = 1000*1000, // 1MHz
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_display_cfg, &timer_display_hdl));
+    gptimer_alarm_config_t alarm_display_cfg = {
+        .alarm_count = period,
+        .reload_count = 0,
+        .flags.auto_reload_on_alarm = true,
+    };
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(timer_display_hdl,
+                                             &alarm_display_cfg));
+    gptimer_event_callbacks_t timer_display_cbs = {
+        .on_alarm = display_timer_callback,
+    };
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer_display_hdl,
+                                                     &timer_display_cbs, NULL));
+    ESP_ERROR_CHECK(gptimer_enable(timer_display_hdl));
+    ESP_ERROR_CHECK(gptimer_start(timer_display_hdl));
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : display_timer_callback()
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+static bool display_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx) {
+    static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xSem_display, &xHigherPriorityTaskWoken);
+    return true;
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : acq_timer_init('period in µs')
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+void acq_timer_init(uint64_t period) {
+    gptimer_handle_t timer_acq_hdl = NULL;
+    gptimer_config_t timer_acq_cfg = {
+        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+        .direction = GPTIMER_COUNT_UP,
+        .resolution_hz = 1000*1000, // 1MHz
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_acq_cfg, &timer_acq_hdl));
+    gptimer_alarm_config_t alarm_acq_cfg = {
+        .alarm_count = period,
+        .reload_count = 0,
+        .flags.auto_reload_on_alarm = true,
+    };
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(timer_acq_hdl, &alarm_acq_cfg));
+    gptimer_event_callbacks_t timer_acq_cbs = {
+        .on_alarm = acq_timer_callback,
+    };
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer_acq_hdl,
+                                                     &timer_acq_cbs, NULL));
+    ESP_ERROR_CHECK(gptimer_enable(timer_acq_hdl));
+    ESP_ERROR_CHECK(gptimer_start(timer_acq_hdl));
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : acq_timer_callback()
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+static bool acq_timer_callback(gptimer_handle_t timer, const
+                                         gptimer_alarm_event_data_t *edata,
+                                         void *user_ctx) {
+    static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xSem_acq, &xHigherPriorityTaskWoken);
+    return true;
 }

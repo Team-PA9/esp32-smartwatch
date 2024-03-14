@@ -4,6 +4,7 @@
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Author:      PA9 TEAM
  * Modified:    11/03/2024
+ * Status:      OK
  * Framework:   ESP32 (Wrover Kit) v5.1.2
  * -------------------------------------------------------------------------- */
 
@@ -244,6 +245,35 @@ esp_err_t lis2mdl_init(void) {
 
 	return ESP_OK;
 }
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : WhoAmI check if sensor is detected on I2C bus
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+esp_err_t whoami_check(void) {
+    static const char *TAG = "WhoAmI";
+    ESP_LOGI(TAG, "Master check sensors ---");
+
+    // LSM6DSO ID
+    lsm6dso_device_id_get(&lsm6dso_dev_ctx, &LSM6DSO_whoamI);
+    if (LSM6DSO_whoamI != LSM6DSO_ID) { ESP_LOGE(TAG, "LSM6DSO not find"); }
+    else {
+        printf("Product ID= %d \n", LSM6DSO_whoamI);
+        LSM6DSO_OK = 1;
+        }
+
+    // LIS2MDL ID
+    lis2mdl_device_id_get(&lis2mdl_dev_ctx, &LIS2MDL_whoamI);
+    if (LIS2MDL_whoamI != LIS2MDL_ID) { ESP_LOGE(TAG, "LIS2MDL not find"); }
+    else {
+        printf("Product ID= %d \n", LIS2MDL_whoamI);
+        LIS2MDL_OK = 1;
+        }
+
+    ESP_LOGI(TAG, "End of check ---");
+    fflush(stdout);
+    return ESP_OK;
+}
+
 
 /* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Function : Get values from LSM6DSO sensor
