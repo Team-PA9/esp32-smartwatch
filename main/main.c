@@ -45,7 +45,6 @@ static lv_disp_t *display;
 // Sensors
 extern stmdev_ctx_t lsm6dso_dev_ctx, lis2mdl_dev_ctx;
 extern uint8_t LSM6DSO_whoamI, LIS2MDL_whoamI;
-extern bool LSM6DSO_OK, LIS2MDL_OK;
 
 
 /* -----------------------------------------------------------------------------
@@ -55,7 +54,6 @@ QueueSetHandle_t QueueSet_Sem = NULL;
 SemaphoreHandle_t xSem_acq = NULL;
 SemaphoreHandle_t xSem_display = NULL;
 TaskHandle_t xHdl_ME = NULL;
-TaskHandle_t xHdl_whoami = NULL;
 
 
 /* -----------------------------------------------------------------------------
@@ -135,8 +133,8 @@ void ME(void *pvParameter) {
         if (xSemReceived == xSem_acq) {
             ESP_LOGW(TAG, "Acquire data from sensors");
             xSemaphoreTake(xSem_acq, 0);
-            if (LSM6DSO_OK == 1) { get_LSM6DSO(); }
-            if (LIS2MDL_OK == 1) { get_LIS2MDL(); }
+            get_LSM6DSO();
+            get_LIS2MDL();
         } 
         else if (xSemReceived == xSem_display) {
             ESP_LOGW(TAG, "Update display");
@@ -179,7 +177,7 @@ void display_timer_init(uint64_t period) {
 /* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Function : display_timer_callback()
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-static bool display_timer_callback(gptimer_handle_t timer, const
+static bool IRAM_ATTR display_timer_callback(gptimer_handle_t timer, const
                                    gptimer_alarm_event_data_t *edata,
                                    void *user_ctx) {
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -216,7 +214,7 @@ void acq_timer_init(uint64_t period) {
 /* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Function : acq_timer_callback()
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-static bool acq_timer_callback(gptimer_handle_t timer, const
+static bool IRAM_ATTR acq_timer_callback(gptimer_handle_t timer, const
                                          gptimer_alarm_event_data_t *edata,
                                          void *user_ctx) {
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;

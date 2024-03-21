@@ -48,7 +48,6 @@
 
 // LSM6MDL
 stmdev_ctx_t lsm6dso_dev_ctx;
-bool LSM6DSO_OK;
 uint8_t LSM6DSO_whoamI, LSM6DSO_rst;
 int16_t LSM6DSO_raw_acceleration[3];
 int16_t LSM6DSO_raw_angular_rate[3];
@@ -59,7 +58,6 @@ float LSM6DSO_temperature_degC;
 
 // LIS2MDL
 stmdev_ctx_t lis2mdl_dev_ctx;
-bool LIS2MDL_OK;
 uint8_t LIS2MDL_whoamI;
 int16_t LIS2MDL_raw_magnetic[3];
 float LIS2MDL_magnetic_mG[3];
@@ -256,18 +254,12 @@ esp_err_t whoami_check(void) {
     // LSM6DSO ID
     lsm6dso_device_id_get(&lsm6dso_dev_ctx, &LSM6DSO_whoamI);
     if (LSM6DSO_whoamI != LSM6DSO_ID) { ESP_LOGE(TAG, "LSM6DSO not find"); }
-    else {
-        printf("Product ID= %d \n", LSM6DSO_whoamI);
-        LSM6DSO_OK = 1;
-        }
+    else { printf("Product ID= %d \n", LSM6DSO_whoamI); }
 
     // LIS2MDL ID
     lis2mdl_device_id_get(&lis2mdl_dev_ctx, &LIS2MDL_whoamI);
     if (LIS2MDL_whoamI != LIS2MDL_ID) { ESP_LOGE(TAG, "LIS2MDL not find"); }
-    else {
-        printf("Product ID= %d \n", LIS2MDL_whoamI);
-        LIS2MDL_OK = 1;
-        }
+    else { printf("Product ID= %d \n", LIS2MDL_whoamI); }
 
     ESP_LOGI(TAG, "End of check ---");
     fflush(stdout);
@@ -279,48 +271,53 @@ esp_err_t whoami_check(void) {
  * Function : Get values from LSM6DSO sensor
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
 void get_LSM6DSO() {
-    /* Read output only if new value is available */
-    lsm6dso_reg_t reg;
-    lsm6dso_status_reg_get(&lsm6dso_dev_ctx, &reg.status_reg);
+    static const char *TAG = "get_LSM6DSO";
+    lsm6dso_device_id_get(&lsm6dso_dev_ctx, &LSM6DSO_whoamI);
+    if (LSM6DSO_whoamI != LSM6DSO_ID) { ESP_LOGE(TAG, "LSM6DSO not find"); }
+    else {
+        /* Read output only if new value is available */
+        lsm6dso_reg_t reg;
+        lsm6dso_status_reg_get(&lsm6dso_dev_ctx, &reg.status_reg);
 
-    if (reg.status_reg.xlda) {
-        memset(LSM6DSO_raw_acceleration, 0x00, 3 * sizeof(int16_t));
-        lsm6dso_acceleration_raw_get(&lsm6dso_dev_ctx, LSM6DSO_raw_acceleration);
-        LSM6DSO_acceleration_mg[0] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[0]);
-        LSM6DSO_acceleration_mg[1] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[1]);
-        LSM6DSO_acceleration_mg[2] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[2]);
-        log_acceleration_X[-1] = LSM6DSO_acceleration_mg[0];
-        log_acceleration_Y[-1] = LSM6DSO_acceleration_mg[1];
-        log_acceleration_Z[-1] = LSM6DSO_acceleration_mg[2];
-        acc_index++;
-        sprintf((char *)tx_buffer, "Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
-                LSM6DSO_acceleration_mg[0], LSM6DSO_acceleration_mg[1], LSM6DSO_acceleration_mg[2]);
-        printf((char const *)tx_buffer);
-    }
+        if (reg.status_reg.xlda) {
+            memset(LSM6DSO_raw_acceleration, 0x00, 3 * sizeof(int16_t));
+            lsm6dso_acceleration_raw_get(&lsm6dso_dev_ctx, LSM6DSO_raw_acceleration);
+            LSM6DSO_acceleration_mg[0] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[0]);
+            LSM6DSO_acceleration_mg[1] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[1]);
+            LSM6DSO_acceleration_mg[2] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[2]);
+            log_acceleration_X[-1] = LSM6DSO_acceleration_mg[0];
+            log_acceleration_Y[-1] = LSM6DSO_acceleration_mg[1];
+            log_acceleration_Z[-1] = LSM6DSO_acceleration_mg[2];
+            acc_index++;
+            sprintf((char *)tx_buffer, "Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
+                    LSM6DSO_acceleration_mg[0], LSM6DSO_acceleration_mg[1], LSM6DSO_acceleration_mg[2]);
+            printf((char const *)tx_buffer);
+        }
 
-    if (reg.status_reg.gda) {
-        memset(LSM6DSO_raw_angular_rate, 0x00, 3 * sizeof(int16_t));
-        lsm6dso_angular_rate_raw_get(&lsm6dso_dev_ctx, LSM6DSO_raw_angular_rate);
-        LSM6DSO_angular_rate_mdps[0] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[0]);
-        LSM6DSO_angular_rate_mdps[1] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[1]);
-        LSM6DSO_angular_rate_mdps[2] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[2]);
-        log_angular_rate_X[-1] = LSM6DSO_angular_rate_mdps[0];
-        log_angular_rate_Y[-1] = LSM6DSO_angular_rate_mdps[1];
-        log_angular_rate_Z[-1] = LSM6DSO_angular_rate_mdps[2];
-        gyro_index++;
-        sprintf((char *)tx_buffer, "Angular rate [mdps]:%4.2f\t%4.2f\t%4.2f\r\n",
-                LSM6DSO_angular_rate_mdps[0], LSM6DSO_angular_rate_mdps[1], LSM6DSO_angular_rate_mdps[2]);
-        printf((char const *)tx_buffer);
-    }
+        if (reg.status_reg.gda) {
+            memset(LSM6DSO_raw_angular_rate, 0x00, 3 * sizeof(int16_t));
+            lsm6dso_angular_rate_raw_get(&lsm6dso_dev_ctx, LSM6DSO_raw_angular_rate);
+            LSM6DSO_angular_rate_mdps[0] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[0]);
+            LSM6DSO_angular_rate_mdps[1] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[1]);
+            LSM6DSO_angular_rate_mdps[2] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[2]);
+            log_angular_rate_X[-1] = LSM6DSO_angular_rate_mdps[0];
+            log_angular_rate_Y[-1] = LSM6DSO_angular_rate_mdps[1];
+            log_angular_rate_Z[-1] = LSM6DSO_angular_rate_mdps[2];
+            gyro_index++;
+            sprintf((char *)tx_buffer, "Angular rate [mdps]:%4.2f\t%4.2f\t%4.2f\r\n",
+                    LSM6DSO_angular_rate_mdps[0], LSM6DSO_angular_rate_mdps[1], LSM6DSO_angular_rate_mdps[2]);
+            printf((char const *)tx_buffer);
+        }
 
-    if (reg.status_reg.tda) {
-        memset(&LSM6DSO_raw_temperature, 0x00, sizeof(int16_t));
-        lsm6dso_temperature_raw_get(&lsm6dso_dev_ctx, &LSM6DSO_raw_temperature);
-        LSM6DSO_temperature_degC = lsm6dso_from_lsb_to_celsius(LSM6DSO_raw_temperature);
-        log_temperature[-1] = LSM6DSO_temperature_degC;
-        temp_index++;
-        sprintf((char *)tx_buffer, "Temperature [degC]:%6.2f\r\n", LSM6DSO_temperature_degC);
-        printf((char const *)tx_buffer);
+        if (reg.status_reg.tda) {
+            memset(&LSM6DSO_raw_temperature, 0x00, sizeof(int16_t));
+            lsm6dso_temperature_raw_get(&lsm6dso_dev_ctx, &LSM6DSO_raw_temperature);
+            LSM6DSO_temperature_degC = lsm6dso_from_lsb_to_celsius(LSM6DSO_raw_temperature);
+            log_temperature[-1] = LSM6DSO_temperature_degC;
+            temp_index++;
+            sprintf((char *)tx_buffer, "Temperature [degC]:%6.2f\r\n", LSM6DSO_temperature_degC);
+            printf((char const *)tx_buffer);
+        }
     }
 }
 
@@ -328,21 +325,26 @@ void get_LSM6DSO() {
  * Function : Get values from LIS2MDL sensor
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
 void get_LIS2MDL() {
-    lis2mdl_reg_t reg;
-    lis2mdl_status_get(&lis2mdl_dev_ctx, &reg.status_reg);
+    static const char *TAG = "get_LIS2MDL";
+    lis2mdl_device_id_get(&lis2mdl_dev_ctx, &LIS2MDL_whoamI);
+    if (LIS2MDL_whoamI != LIS2MDL_ID) { ESP_LOGE(TAG, "LIS2MDL not find"); }
+    else {
+        lis2mdl_reg_t reg;
+        lis2mdl_status_get(&lis2mdl_dev_ctx, &reg.status_reg);
 
-    if (reg.status_reg.zyxda) {
-        memset(LIS2MDL_raw_magnetic, 0x00, 3 * sizeof(int16_t));
-        lis2mdl_magnetic_raw_get(&lis2mdl_dev_ctx, LIS2MDL_raw_magnetic);
-        LIS2MDL_magnetic_mG[0] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[0]);
-        LIS2MDL_magnetic_mG[1] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[1]);
-        LIS2MDL_magnetic_mG[2] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[2]);
-        log_magnetic_X[-1] = LIS2MDL_magnetic_mG[0];
-        log_magnetic_Y[-1] = LIS2MDL_magnetic_mG[1];
-        log_magnetic_Z[-1] = LIS2MDL_magnetic_mG[2];
-        mag_index++;
-        sprintf((char *)tx_buffer, "Magnetic field [mG]:%4.2f\t%4.2f\t%4.2f\r\n",
-                LIS2MDL_magnetic_mG[0], LIS2MDL_magnetic_mG[1], LIS2MDL_magnetic_mG[2]);
-        printf((char const *)tx_buffer);
+        if (reg.status_reg.zyxda) {
+            memset(LIS2MDL_raw_magnetic, 0x00, 3 * sizeof(int16_t));
+            lis2mdl_magnetic_raw_get(&lis2mdl_dev_ctx, LIS2MDL_raw_magnetic);
+            LIS2MDL_magnetic_mG[0] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[0]);
+            LIS2MDL_magnetic_mG[1] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[1]);
+            LIS2MDL_magnetic_mG[2] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[2]);
+            log_magnetic_X[-1] = LIS2MDL_magnetic_mG[0];
+            log_magnetic_Y[-1] = LIS2MDL_magnetic_mG[1];
+            log_magnetic_Z[-1] = LIS2MDL_magnetic_mG[2];
+            mag_index++;
+            sprintf((char *)tx_buffer, "Magnetic field [mG]:%4.2f\t%4.2f\t%4.2f\r\n",
+                    LIS2MDL_magnetic_mG[0], LIS2MDL_magnetic_mG[1], LIS2MDL_magnetic_mG[2]);
+            printf((char const *)tx_buffer);
+        }
     }
 }
