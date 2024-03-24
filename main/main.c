@@ -38,8 +38,11 @@
  * -------------------------------------------------------------------------- */
 static const char *TAG = "SMARTWATCH";
 
+// LVGL
+#define LV_TICK_PERIOD_MS 1
+
 // Display
-#define APP_DISP_DEFAULT_BRIGHTNESS 50
+#define APP_DISP_DEFAULT_BRIGHTNESS 100
 static lv_disp_t *display;
 
 // Sensors
@@ -68,7 +71,9 @@ void acq_timer_init(uint64_t period);
 static bool acq_timer_callback(gptimer_handle_t timer, const
                                gptimer_alarm_event_data_t *edata,
                                void *user_ctx);
+static void lv_tick_task(void *arg);
 
+void screen_init();
 
 /* -----------------------------------------------------------------------------
  * PART 4 : app_main()
@@ -96,13 +101,7 @@ void app_main(void) {
 
     // Step 1.3 : Display, LVGL & UI
     printf("Initialize display, LVGL and UI...\n");
-    display = bsp_display_start();
-    bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
-    lv_disp_set_rotation(display, LV_DISP_ROT_90);
-    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
-    bsp_display_lock(0);
-    ui_init();
-    bsp_display_unlock();
+    screen_init();
 
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     // Step 2: Tasks installation
@@ -220,4 +219,29 @@ static bool IRAM_ATTR acq_timer_callback(gptimer_handle_t timer, const
     static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     xSemaphoreGiveFromISR(xSem_acq, &xHigherPriorityTaskWoken);
     return true;
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : lv_tick_task('period in µs')
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+static void lv_tick_task(void *arg) {
+    lv_tick_inc(LV_TICK_PERIOD_MS);
+}
+
+void screen_init() {
+    display = bsp_display_start();
+    // bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
+    // lv_disp_set_rotation(display, LV_DISP_ROT_90);
+    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
+    bsp_display_lock(0);
+    ui_init();
+    bsp_display_unlock();
+
+    const esp_timer_create_args_t periodic_timer_args = {
+		.callback = &lv_tick_task,
+		.name = "periodic_gui"
+	};
+	esp_timer_handle_t periodic_timer;
+	ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
+	ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
 }

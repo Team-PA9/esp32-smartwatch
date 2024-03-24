@@ -15,12 +15,14 @@ extern "C" {
 #include "ui_helpers.h"
 #include "ui_events.h"
 
-// SCREEN: ui_Screen1
-void ui_Screen1_screen_init(void);
-extern lv_obj_t *ui_Screen1;
-extern lv_obj_t *ui_Label1;
+// SCREEN: ui_WatchScreen
+void ui_WatchScreen_screen_init(void);
+extern lv_obj_t *ui_WatchScreen;
+extern lv_obj_t *ui_Watchface;
+extern lv_obj_t *ui_LabelTest;
 extern lv_obj_t *ui____initial_actions0;
 
+LV_IMG_DECLARE( ui_img_1308839649);   // assets/background-watch.png
 
 
 
