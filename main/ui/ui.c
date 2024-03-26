@@ -13,7 +13,15 @@
 void ui_WatchScreen_screen_init(void);
 lv_obj_t *ui_WatchScreen;
 lv_obj_t *ui_Watchface;
-lv_obj_t *ui_LabelTest;
+lv_obj_t *ui_LittleHand;
+lv_obj_t *ui_BigHand;
+lv_obj_t *ui_SecondHand;
+
+
+// SCREEN: ui_Sensor1Screen
+void ui_Sensor1Screen_screen_init(void);
+lv_obj_t *ui_Sensor1Screen;
+lv_obj_t *ui_Chart2;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -36,6 +44,7 @@ lv_disp_t *dispp = lv_disp_get_default();
 lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
 lv_disp_set_theme(dispp, theme);
 ui_WatchScreen_screen_init();
+ui_Sensor1Screen_screen_init();
 ui____initial_actions0 = lv_obj_create(NULL);
 lv_disp_load_scr( ui_WatchScreen);
 }

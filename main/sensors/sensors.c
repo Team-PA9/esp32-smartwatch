@@ -21,8 +21,8 @@
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
 
-#include "ui/ui.h"
-#include "lvgl.h"
+// #include "ui/ui.h"
+// #include "lvgl.h"
 
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
@@ -84,7 +84,7 @@ uint8_t temp_index = 0;
 // Others
 uint8_t tx_buffer[1000];
 
-extern lv_obj_t *ui_LabelTest;
+// extern lv_obj_t *ui_LabelTest;
 
 /* -----------------------------------------------------------------------------
  * PART 2 : Private Functions
@@ -318,9 +318,9 @@ void get_LSM6DSO() {
             log_temperature[-1] = LSM6DSO_temperature_degC;
             temp_index++;
 
-            char temp_buf[8];
+            /* char temp_buf[8];
             sprintf(temp_buf, "%4.2f", LSM6DSO_temperature_degC);
-            lv_label_set_text(ui_LabelTest, temp_buf);
+            lv_label_set_text(ui_LabelTest, temp_buf); */
 
             sprintf((char *)tx_buffer, "Temperature [degC]:%6.2f\r\n", LSM6DSO_temperature_degC);
             printf((char const *)tx_buffer);

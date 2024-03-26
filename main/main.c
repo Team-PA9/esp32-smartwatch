@@ -40,6 +40,9 @@ static const char *TAG = "SMARTWATCH";
 
 // LVGL
 #define LV_TICK_PERIOD_MS 1
+extern lv_obj_t *ui_SecondHand; // Seconds
+extern lv_obj_t *ui_BigHand; // Minutes
+extern lv_obj_t *ui_LittleHand; // Hours
 
 // Display
 #define APP_DISP_DEFAULT_BRIGHTNESS 100
@@ -56,8 +59,8 @@ extern uint8_t LSM6DSO_whoamI, LIS2MDL_whoamI;
 QueueSetHandle_t QueueSet_Sem = NULL;
 SemaphoreHandle_t xSem_acq = NULL;
 SemaphoreHandle_t xSem_display = NULL;
+SemaphoreHandle_t xSem_second_hand = NULL;
 TaskHandle_t xHdl_ME = NULL;
-
 
 /* -----------------------------------------------------------------------------
  * PART 3 : Private Functions Declarations
@@ -71,9 +74,14 @@ void acq_timer_init(uint64_t period);
 static bool acq_timer_callback(gptimer_handle_t timer, const
                                gptimer_alarm_event_data_t *edata,
                                void *user_ctx);
+void second_hand_timer_init(uint64_t period);
+static bool second_hand_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx);
 static void lv_tick_task(void *arg);
 
 void screen_init();
+void time_handler();
 
 /* -----------------------------------------------------------------------------
  * PART 4 : app_main()
@@ -95,9 +103,11 @@ void app_main(void) {
     printf("Initialize Semaphore and Queue... \n");
     xSem_display = xSemaphoreCreateBinary();
     xSem_acq = xSemaphoreCreateBinary();
-    QueueSet_Sem = xQueueCreateSet(2);
+    xSem_second_hand = xSemaphoreCreateBinary();
+    QueueSet_Sem = xQueueCreateSet(3);
     xQueueAddToSet(xSem_display, QueueSet_Sem);
     xQueueAddToSet(xSem_acq, QueueSet_Sem);
+    xQueueAddToSet(xSem_second_hand, QueueSet_Sem);
 
     // Step 1.3 : Display, LVGL & UI
     printf("Initialize display, LVGL and UI...\n");
@@ -113,6 +123,7 @@ void app_main(void) {
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     acq_timer_init(1000 * 1000);    // Acquisition period : 1s
     display_timer_init(1000 * 300); // Display period : 300ms
+    second_hand_timer_init(1000 * 1000); // Test second hand timer
     
     ESP_LOGI(TAG, "Ended app_main() ---");
     fflush(stdout);
@@ -135,6 +146,12 @@ void ME(void *pvParameter) {
             get_LSM6DSO();
             get_LIS2MDL();
         } 
+        else if (xSemReceived == xSem_second_hand) {
+            ESP_LOGW(TAG, "Second hand timer");
+            xSemaphoreTake(xSem_second_hand, 0);
+            
+            time_handler();
+        }
         else if (xSemReceived == xSem_display) {
             ESP_LOGW(TAG, "Update display");
             xSemaphoreTake(xSem_display, 0);
@@ -222,6 +239,44 @@ static bool IRAM_ATTR acq_timer_callback(gptimer_handle_t timer, const
 }
 
 /* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : second_hand_timer_init('period in µs')
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+void second_hand_timer_init(uint64_t period) {
+    gptimer_handle_t timer_display_hdl = NULL;
+    gptimer_config_t timer_display_cfg = {
+        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+        .direction = GPTIMER_COUNT_UP,
+        .resolution_hz = 1000*1000, // 1MHz
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_display_cfg, &timer_display_hdl));
+    gptimer_alarm_config_t alarm_display_cfg = {
+        .alarm_count = period,
+        .reload_count = 0,
+        .flags.auto_reload_on_alarm = true,
+    };
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(timer_display_hdl,
+                                             &alarm_display_cfg));
+    gptimer_event_callbacks_t timer_display_cbs = {
+        .on_alarm = second_hand_timer_callback,
+    };
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer_display_hdl,
+                                                     &timer_display_cbs, NULL));
+    ESP_ERROR_CHECK(gptimer_enable(timer_display_hdl));
+    ESP_ERROR_CHECK(gptimer_start(timer_display_hdl));
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : display_timer_callback()
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+static bool IRAM_ATTR second_hand_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx) {
+    static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xSem_second_hand, &xHigherPriorityTaskWoken);
+    return true;
+}
+
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
  * Function : lv_tick_task('period in µs')
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
 static void lv_tick_task(void *arg) {
@@ -230,8 +285,8 @@ static void lv_tick_task(void *arg) {
 
 void screen_init() {
     display = bsp_display_start();
-    // bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
-    // lv_disp_set_rotation(display, LV_DISP_ROT_90);
+    bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
+    lv_disp_set_rotation(display, LV_DISP_ROT_90);
     bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
     bsp_display_lock(0);
     ui_init();
@@ -244,4 +299,34 @@ void screen_init() {
 	esp_timer_handle_t periodic_timer;
 	ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
 	ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
+}
+
+void time_handler() {
+    static uint8_t sec = 0;
+    static uint8_t min = 0;
+    static uint8_t hour = 0;
+    sec++;
+
+    if (sec == 60) {
+        sec = 0;
+        min++;
+    }
+
+    if (min == 60) {
+        min = 0;
+        hour++;
+    }
+
+    if (hour == 24) {
+        hour = 0;
+    }
+
+    // Rotate the second hand by 6 degrees each second
+    lv_img_set_angle(ui_SecondHand, (sec * 6) * 10);
+
+    // Rotate the minute hand by 6 degrees each minute
+    lv_img_set_angle(ui_BigHand, (min * 6) * 10);
+
+    // Rotate the hour hand by 30 degrees each hour
+    lv_img_set_angle(ui_LittleHand, (hour * 30) * 10);
 }

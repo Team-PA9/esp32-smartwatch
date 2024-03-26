@@ -20,14 +20,37 @@ lv_obj_set_align( ui_Watchface, LV_ALIGN_CENTER );
 lv_obj_add_flag( ui_Watchface, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
 lv_obj_clear_flag( ui_Watchface, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
 
-ui_LabelTest = lv_label_create(ui_WatchScreen);
-lv_obj_set_width( ui_LabelTest, LV_SIZE_CONTENT);  /// 1
-lv_obj_set_height( ui_LabelTest, LV_SIZE_CONTENT);   /// 1
-lv_obj_set_x( ui_LabelTest, -1 );
-lv_obj_set_y( ui_LabelTest, -140 );
-lv_obj_set_align( ui_LabelTest, LV_ALIGN_CENTER );
-lv_label_set_text(ui_LabelTest,"test");
-lv_obj_set_style_text_color(ui_LabelTest, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
-lv_obj_set_style_text_opa(ui_LabelTest, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
+ui_LittleHand = lv_img_create(ui_WatchScreen);
+lv_img_set_src(ui_LittleHand, &ui_img_little_png);
+lv_obj_set_width( ui_LittleHand, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_LittleHand, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_LittleHand, 0 );
+lv_obj_set_y( ui_LittleHand, -35 );
+lv_obj_set_align( ui_LittleHand, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_LittleHand, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
+lv_obj_clear_flag( ui_LittleHand, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_img_set_pivot(ui_LittleHand,8,77);
+
+ui_BigHand = lv_img_create(ui_WatchScreen);
+lv_img_set_src(ui_BigHand, &ui_img_big_png);
+lv_obj_set_width( ui_BigHand, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_BigHand, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_BigHand, 0 );
+lv_obj_set_y( ui_BigHand, -52 );
+lv_obj_set_align( ui_BigHand, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_BigHand, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
+lv_obj_clear_flag( ui_BigHand, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_img_set_pivot(ui_BigHand,8,112);
+
+ui_SecondHand = lv_img_create(ui_WatchScreen);
+lv_img_set_src(ui_SecondHand, &ui_img_second_hand_png);
+lv_obj_set_width( ui_SecondHand, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_SecondHand, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_SecondHand, 0 );
+lv_obj_set_y( ui_SecondHand, -49 );
+lv_obj_set_align( ui_SecondHand, LV_ALIGN_CENTER );
+lv_obj_add_flag( ui_SecondHand, LV_OBJ_FLAG_ADV_HITTEST );   /// Flags
+lv_obj_clear_flag( ui_SecondHand, LV_OBJ_FLAG_SCROLLABLE );    /// Flags
+lv_img_set_pivot(ui_SecondHand,4,110);
 
 }

@@ -1,8 +1,12 @@
 SET(SOURCES ui_WatchScreen.c
+    ui_Sensor1Screen.c
     ui.c
     ui_comp_hook.c
     ui_helpers.c
     ui_events.c
-    ui_img_1308839649.c)
+    ui_img_1308839649.c
+    ui_img_little_png.c
+    ui_img_big_png.c
+    ui_img_second_hand_png.c)
 
 add_library(ui ${SOURCES})
