@@ -20,11 +20,38 @@ extern lv_obj_t *ui_BigHand; // Minutes
 extern lv_obj_t *ui_LittleHand; // Hours
 
 extern lv_obj_t *ui_WatchScreen;
-extern lv_obj_t *ui_Sensor1Screen;
-extern lv_obj_t *ui_TempChart;
+extern lv_obj_t *ui_TempScreen;
+extern lv_obj_t *ui_AccelerometerScreen;
+extern lv_obj_t *ui_GryoScreen;
+extern lv_obj_t *ui_MagnetometerScreen;
 
+extern lv_obj_t *ui_TempChart;
 lv_chart_series_t* ui_TempChart_series_1;
 static lv_coord_t ui_TempChart_series_1_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+
+extern lv_obj_t *ui_AccelerometerChart;
+lv_chart_series_t* ui_AccelerometerChart_series_1;
+static lv_coord_t ui_AccelerometerChart_series_1_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_AccelerometerChart_series_2;
+static lv_coord_t ui_AccelerometerChart_series_2_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_AccelerometerChart_series_3;
+static lv_coord_t ui_AccelerometerChart_series_3_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+
+extern lv_obj_t *ui_GryoChart;
+lv_chart_series_t* ui_GryoChart_series_1;
+static lv_coord_t ui_GryoChart_series_1_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_GryoChart_series_2;
+static lv_coord_t ui_GryoChart_series_2_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_GryoChart_series_3;
+static lv_coord_t ui_GryoChart_series_3_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+
+extern lv_obj_t *ui_MagnetometerChart;
+lv_chart_series_t* ui_MagnetometerChart_series_1;
+static lv_coord_t ui_MagnetometerChart_series_1_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_MagnetometerChart_series_2;
+static lv_coord_t ui_MagnetometerChart_series_2_array[] = { 0,0,0,0,0,0,0,0,0,0 };
+lv_chart_series_t* ui_MagnetometerChart_series_3;
+static lv_coord_t ui_MagnetometerChart_series_3_array[] = { 0,0,0,0,0,0,0,0,0,0 };
 
 void screen_init() {
     display = bsp_display_start();
@@ -38,6 +65,26 @@ void screen_init() {
 
     ui_TempChart_series_1 = lv_chart_add_series(ui_TempChart, lv_color_hex(0xD21813), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_TempChart, ui_TempChart_series_1, ui_TempChart_series_1_array);
+    ui_AccelerometerChart_series_1 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_1, ui_AccelerometerChart_series_1_array);
+    ui_AccelerometerChart_series_2 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_2, ui_AccelerometerChart_series_2_array);
+
+    ui_AccelerometerChart_series_3 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_3, ui_AccelerometerChart_series_3_array);
+    ui_GryoChart_series_1 = lv_chart_add_series(ui_GryoChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_GryoChart, ui_GryoChart_series_1, ui_GryoChart_series_1_array);
+    ui_GryoChart_series_2 = lv_chart_add_series(ui_GryoChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_GryoChart, ui_GryoChart_series_2, ui_GryoChart_series_2_array);
+    ui_GryoChart_series_3 = lv_chart_add_series(ui_GryoChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_GryoChart, ui_GryoChart_series_3, ui_GryoChart_series_3_array);
+
+    ui_MagnetometerChart_series_1 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_1, ui_MagnetometerChart_series_1_array);
+    ui_MagnetometerChart_series_2 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_2, ui_MagnetometerChart_series_2_array);
+    ui_MagnetometerChart_series_3 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_3, ui_MagnetometerChart_series_3_array);
 
     bsp_display_unlock();
 
@@ -90,7 +137,16 @@ void cycle_screen() {
             lv_scr_load(ui_WatchScreen);
             break;
         case 1:
-            lv_scr_load(ui_Sensor1Screen);
+            lv_scr_load(ui_TempScreen);
+            break;
+        case 2:
+            lv_scr_load(ui_AccelerometerScreen);
+            break;
+        case 3:
+            lv_scr_load(ui_GryoScreen);
+            break;
+        case 4:
+            lv_scr_load(ui_MagnetometerScreen);
             break;
         default:
             screen = 0;

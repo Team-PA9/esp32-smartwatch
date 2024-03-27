@@ -1,5 +1,8 @@
 SET(SOURCES ui_WatchScreen.c
-    ui_Sensor1Screen.c
+    ui_TempScreen.c
+    ui_AccelerometerScreen.c
+    ui_GryoScreen.c
+    ui_MagnetometerScreen.c
     ui.c
     ui_comp_hook.c
     ui_helpers.c
