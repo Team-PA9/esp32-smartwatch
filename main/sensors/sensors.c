@@ -21,8 +21,10 @@
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
 
-// #include "ui/ui.h"
-// #include "lvgl.h"
+#include "ui/ui.h"
+
+#include "squareline-ui/ui.h"
+#include "lvgl.h"
 
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
@@ -84,7 +86,8 @@ uint8_t temp_index = 0;
 // Others
 uint8_t tx_buffer[1000];
 
-// extern lv_obj_t *ui_LabelTest;
+extern lv_obj_t *ui_TempChart;
+extern lv_chart_series_t *ui_TempChart_series_1;
 
 /* -----------------------------------------------------------------------------
  * PART 2 : Private Functions
@@ -287,10 +290,17 @@ void get_LSM6DSO() {
             LSM6DSO_acceleration_mg[0] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[0]);
             LSM6DSO_acceleration_mg[1] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[1]);
             LSM6DSO_acceleration_mg[2] = lsm6dso_from_fs2_to_mg(LSM6DSO_raw_acceleration[2]);
-            log_acceleration_X[-1] = LSM6DSO_acceleration_mg[0];
-            log_acceleration_Y[-1] = LSM6DSO_acceleration_mg[1];
-            log_acceleration_Z[-1] = LSM6DSO_acceleration_mg[2];
+
+            //
+
+            log_acceleration_X[acc_index] = LSM6DSO_acceleration_mg[0];
+            log_acceleration_Y[acc_index] = LSM6DSO_acceleration_mg[1];
+            log_acceleration_Z[acc_index] = LSM6DSO_acceleration_mg[2];
             acc_index++;
+            if (acc_index == 100) {
+                acc_index = 0;
+            }
+
             sprintf((char *)tx_buffer, "Acceleration [mg]:%4.2f\t%4.2f\t%4.2f\r\n",
                     LSM6DSO_acceleration_mg[0], LSM6DSO_acceleration_mg[1], LSM6DSO_acceleration_mg[2]);
             printf((char const *)tx_buffer);
@@ -302,10 +312,17 @@ void get_LSM6DSO() {
             LSM6DSO_angular_rate_mdps[0] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[0]);
             LSM6DSO_angular_rate_mdps[1] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[1]);
             LSM6DSO_angular_rate_mdps[2] = lsm6dso_from_fs2000_to_mdps(LSM6DSO_raw_angular_rate[2]);
-            log_angular_rate_X[-1] = LSM6DSO_angular_rate_mdps[0];
-            log_angular_rate_Y[-1] = LSM6DSO_angular_rate_mdps[1];
-            log_angular_rate_Z[-1] = LSM6DSO_angular_rate_mdps[2];
+
+            // 
+
+            log_angular_rate_X[gyro_index] = LSM6DSO_angular_rate_mdps[0];
+            log_angular_rate_Y[gyro_index] = LSM6DSO_angular_rate_mdps[1];
+            log_angular_rate_Z[gyro_index] = LSM6DSO_angular_rate_mdps[2];
             gyro_index++;
+            if (gyro_index == 100) {
+                gyro_index = 0;
+            }
+
             sprintf((char *)tx_buffer, "Angular rate [mdps]:%4.2f\t%4.2f\t%4.2f\r\n",
                     LSM6DSO_angular_rate_mdps[0], LSM6DSO_angular_rate_mdps[1], LSM6DSO_angular_rate_mdps[2]);
             printf((char const *)tx_buffer);
@@ -315,13 +332,15 @@ void get_LSM6DSO() {
             memset(&LSM6DSO_raw_temperature, 0x00, sizeof(int16_t));
             lsm6dso_temperature_raw_get(&lsm6dso_dev_ctx, &LSM6DSO_raw_temperature);
             LSM6DSO_temperature_degC = lsm6dso_from_lsb_to_celsius(LSM6DSO_raw_temperature);
-            log_temperature[-1] = LSM6DSO_temperature_degC;
+            
+            lv_chart_set_next_value(ui_TempChart, ui_TempChart_series_1, LSM6DSO_temperature_degC);
+
+            log_temperature[temp_index] = LSM6DSO_temperature_degC;
             temp_index++;
-
-            /* char temp_buf[8];
-            sprintf(temp_buf, "%4.2f", LSM6DSO_temperature_degC);
-            lv_label_set_text(ui_LabelTest, temp_buf); */
-
+            if (temp_index == 100) {
+                temp_index = 0;
+            }
+            
             sprintf((char *)tx_buffer, "Temperature [degC]:%6.2f\r\n", LSM6DSO_temperature_degC);
             printf((char const *)tx_buffer);
         }
@@ -345,10 +364,17 @@ void get_LIS2MDL() {
             LIS2MDL_magnetic_mG[0] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[0]);
             LIS2MDL_magnetic_mG[1] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[1]);
             LIS2MDL_magnetic_mG[2] = lis2mdl_from_lsb_to_mgauss(LIS2MDL_raw_magnetic[2]);
-            log_magnetic_X[-1] = LIS2MDL_magnetic_mG[0];
-            log_magnetic_Y[-1] = LIS2MDL_magnetic_mG[1];
-            log_magnetic_Z[-1] = LIS2MDL_magnetic_mG[2];
+            
+            //
+
+            log_magnetic_X[mag_index] = LIS2MDL_magnetic_mG[0];
+            log_magnetic_Y[mag_index] = LIS2MDL_magnetic_mG[1];
+            log_magnetic_Z[mag_index] = LIS2MDL_magnetic_mG[2];
             mag_index++;
+            if (mag_index == 100) {
+                mag_index = 0;
+            }
+
             sprintf((char *)tx_buffer, "Magnetic field [mG]:%4.2f\t%4.2f\t%4.2f\r\n",
                     LIS2MDL_magnetic_mG[0], LIS2MDL_magnetic_mG[1], LIS2MDL_magnetic_mG[2]);
             printf((char const *)tx_buffer);
