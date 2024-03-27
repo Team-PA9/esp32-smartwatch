@@ -13,13 +13,13 @@ lv_obj_set_style_bg_color(ui_TempScreen, lv_color_hex(0x000000), LV_PART_MAIN | 
 lv_obj_set_style_bg_opa(ui_TempScreen, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_TempChart = lv_chart_create(ui_TempScreen);
-lv_obj_set_width( ui_TempChart, 265);
-lv_obj_set_height( ui_TempChart, 191);
-lv_obj_set_x( ui_TempChart, 14 );
-lv_obj_set_y( ui_TempChart, -12 );
+lv_obj_set_width( ui_TempChart, 249);
+lv_obj_set_height( ui_TempChart, 163);
+lv_obj_set_x( ui_TempChart, 22 );
+lv_obj_set_y( ui_TempChart, 2 );
 lv_obj_set_align( ui_TempChart, LV_ALIGN_CENTER );
 lv_chart_set_type( ui_TempChart, LV_CHART_TYPE_LINE);
-lv_chart_set_range( ui_TempChart, LV_CHART_AXIS_PRIMARY_Y, 0, 50);
+lv_chart_set_range( ui_TempChart, LV_CHART_AXIS_PRIMARY_Y, -40, 85);
 lv_chart_set_range( ui_TempChart, LV_CHART_AXIS_SECONDARY_Y, 0, 0);
 lv_chart_set_axis_tick( ui_TempChart, LV_CHART_AXIS_PRIMARY_X, 10, 5, 10, 1, true, 50);
 lv_chart_set_axis_tick( ui_TempChart, LV_CHART_AXIS_PRIMARY_Y, 10, 5, 5, 2, true, 50);
@@ -27,5 +27,14 @@ lv_chart_set_axis_tick( ui_TempChart, LV_CHART_AXIS_SECONDARY_Y, 0, 0, 0, 0, fal
 
 
 
+ui_TempLabel = lv_label_create(ui_TempScreen);
+lv_obj_set_width( ui_TempLabel, LV_SIZE_CONTENT);  /// 1
+lv_obj_set_height( ui_TempLabel, LV_SIZE_CONTENT);   /// 1
+lv_obj_set_x( ui_TempLabel, 0 );
+lv_obj_set_y( ui_TempLabel, -100 );
+lv_obj_set_align( ui_TempLabel, LV_ALIGN_CENTER );
+lv_label_set_text(ui_TempLabel,"Temperature (°C)");
+lv_obj_set_style_text_color(ui_TempLabel, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT );
+lv_obj_set_style_text_opa(ui_TempLabel, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 }

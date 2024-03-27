@@ -22,24 +22,28 @@ lv_obj_t *ui_SecondHand;
 void ui_TempScreen_screen_init(void);
 lv_obj_t *ui_TempScreen;
 lv_obj_t *ui_TempChart;
+lv_obj_t *ui_TempLabel;
 
 
 // SCREEN: ui_AccelerometerScreen
 void ui_AccelerometerScreen_screen_init(void);
 lv_obj_t *ui_AccelerometerScreen;
 lv_obj_t *ui_AccelerometerChart;
+lv_obj_t *ui_AccelerometerLabel;
 
 
-// SCREEN: ui_GryoScreen
-void ui_GryoScreen_screen_init(void);
-lv_obj_t *ui_GryoScreen;
-lv_obj_t *ui_GryoChart;
+// SCREEN: ui_GyroScreen
+void ui_GyroScreen_screen_init(void);
+lv_obj_t *ui_GyroScreen;
+lv_obj_t *ui_GyroChart;
+lv_obj_t *ui_GyroLabel;
 
 
 // SCREEN: ui_MagnetometerScreen
 void ui_MagnetometerScreen_screen_init(void);
 lv_obj_t *ui_MagnetometerScreen;
 lv_obj_t *ui_MagnetometerChart;
+lv_obj_t *ui_MagnetometerLabel;
 lv_obj_t *ui____initial_actions0;
 
 ///////////////////// TEST LVGL SETTINGS ////////////////////
@@ -64,7 +68,7 @@ lv_disp_set_theme(dispp, theme);
 ui_WatchScreen_screen_init();
 ui_TempScreen_screen_init();
 ui_AccelerometerScreen_screen_init();
-ui_GryoScreen_screen_init();
+ui_GyroScreen_screen_init();
 ui_MagnetometerScreen_screen_init();
 ui____initial_actions0 = lv_obj_create(NULL);
 lv_disp_load_scr( ui_WatchScreen);

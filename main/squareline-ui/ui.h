@@ -26,18 +26,22 @@ extern lv_obj_t *ui_SecondHand;
 void ui_TempScreen_screen_init(void);
 extern lv_obj_t *ui_TempScreen;
 extern lv_obj_t *ui_TempChart;
+extern lv_obj_t *ui_TempLabel;
 // SCREEN: ui_AccelerometerScreen
 void ui_AccelerometerScreen_screen_init(void);
 extern lv_obj_t *ui_AccelerometerScreen;
 extern lv_obj_t *ui_AccelerometerChart;
-// SCREEN: ui_GryoScreen
-void ui_GryoScreen_screen_init(void);
-extern lv_obj_t *ui_GryoScreen;
-extern lv_obj_t *ui_GryoChart;
+extern lv_obj_t *ui_AccelerometerLabel;
+// SCREEN: ui_GyroScreen
+void ui_GyroScreen_screen_init(void);
+extern lv_obj_t *ui_GyroScreen;
+extern lv_obj_t *ui_GyroChart;
+extern lv_obj_t *ui_GyroLabel;
 // SCREEN: ui_MagnetometerScreen
 void ui_MagnetometerScreen_screen_init(void);
 extern lv_obj_t *ui_MagnetometerScreen;
 extern lv_obj_t *ui_MagnetometerChart;
+extern lv_obj_t *ui_MagnetometerLabel;
 extern lv_obj_t *ui____initial_actions0;
 
 LV_IMG_DECLARE( ui_img_1308839649);   // assets/background-watch.png
