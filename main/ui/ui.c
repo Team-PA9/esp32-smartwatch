@@ -138,26 +138,33 @@ void cycle_screen() {
     bsp_display_lock(0);
     switch (screen) {
         case 0:
-            lv_scr_load(ui_WatchScreen);
+            // lv_scr_load(ui_WatchScreen);
+            lv_scr_load_anim(ui_WatchScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 1:
-            lv_scr_load(ui_CalendarScreen);
+            // lv_scr_load(ui_CalendarScreen);
+            lv_scr_load_anim(ui_CalendarScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 2:
-            lv_scr_load(ui_TempScreen);
+            // lv_scr_load(ui_TempScreen);
+            lv_scr_load_anim(ui_TempScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 3:
-            lv_scr_load(ui_AccelerometerScreen);
+            // lv_scr_load(ui_AccelerometerScreen);
+            lv_scr_load_anim(ui_AccelerometerScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 4:
-            lv_scr_load(ui_GyroScreen);
+            // lv_scr_load(ui_GyroScreen);
+            lv_scr_load_anim(ui_GyroScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 5:
-            lv_scr_load(ui_MagnetometerScreen);
+            // lv_scr_load(ui_MagnetometerScreen);
+            lv_scr_load_anim(ui_MagnetometerScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         default:
             screen = 0;
-            lv_scr_load(ui_WatchScreen);
+            // lv_scr_load(ui_WatchScreen);
+            lv_scr_load_anim(ui_WatchScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
     }
     bsp_display_unlock();
