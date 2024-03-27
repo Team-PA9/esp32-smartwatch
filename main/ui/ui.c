@@ -20,6 +20,7 @@ extern lv_obj_t *ui_BigHand; // Minutes
 extern lv_obj_t *ui_LittleHand; // Hours
 
 extern lv_obj_t *ui_WatchScreen;
+extern lv_obj_t *ui_CalendarScreen;
 extern lv_obj_t *ui_TempScreen;
 extern lv_obj_t *ui_AccelerometerScreen;
 extern lv_obj_t *ui_GyroScreen;
@@ -140,15 +141,18 @@ void cycle_screen() {
             lv_scr_load(ui_WatchScreen);
             break;
         case 1:
-            lv_scr_load(ui_TempScreen);
+            lv_scr_load(ui_CalendarScreen);
             break;
         case 2:
-            lv_scr_load(ui_AccelerometerScreen);
+            lv_scr_load(ui_TempScreen);
             break;
         case 3:
-            lv_scr_load(ui_GyroScreen);
+            lv_scr_load(ui_AccelerometerScreen);
             break;
         case 4:
+            lv_scr_load(ui_GyroScreen);
+            break;
+        case 5:
             lv_scr_load(ui_MagnetometerScreen);
             break;
         default:

@@ -18,6 +18,13 @@ lv_obj_t *ui_BigHand;
 lv_obj_t *ui_SecondHand;
 
 
+// SCREEN: ui_CalendarScreen
+void ui_CalendarScreen_screen_init(void);
+lv_obj_t *ui_CalendarScreen;
+lv_obj_t *ui_Calendar;
+lv_obj_t *ui_CalendarOverlay;
+
+
 // SCREEN: ui_TempScreen
 void ui_TempScreen_screen_init(void);
 lv_obj_t *ui_TempScreen;
@@ -66,6 +73,7 @@ lv_disp_t *dispp = lv_disp_get_default();
 lv_theme_t *theme = lv_theme_default_init(dispp, lv_palette_main(LV_PALETTE_BLUE), lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
 lv_disp_set_theme(dispp, theme);
 ui_WatchScreen_screen_init();
+ui_CalendarScreen_screen_init();
 ui_TempScreen_screen_init();
 ui_AccelerometerScreen_screen_init();
 ui_GyroScreen_screen_init();

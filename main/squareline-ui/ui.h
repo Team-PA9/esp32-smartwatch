@@ -22,6 +22,11 @@ extern lv_obj_t *ui_Watchface;
 extern lv_obj_t *ui_LittleHand;
 extern lv_obj_t *ui_BigHand;
 extern lv_obj_t *ui_SecondHand;
+// SCREEN: ui_CalendarScreen
+void ui_CalendarScreen_screen_init(void);
+extern lv_obj_t *ui_CalendarScreen;
+extern lv_obj_t *ui_Calendar;
+extern lv_obj_t *ui_CalendarOverlay;
 // SCREEN: ui_TempScreen
 void ui_TempScreen_screen_init(void);
 extern lv_obj_t *ui_TempScreen;
@@ -48,6 +53,7 @@ LV_IMG_DECLARE( ui_img_1308839649);   // assets/background-watch.png
 LV_IMG_DECLARE( ui_img_little_png);   // assets/little.png
 LV_IMG_DECLARE( ui_img_big_png);   // assets/big.png
 LV_IMG_DECLARE( ui_img_second_hand_png);   // assets/second_hand.png
+LV_IMG_DECLARE( ui_img_overlay_png);   // assets/overlay.png
 
 
 
