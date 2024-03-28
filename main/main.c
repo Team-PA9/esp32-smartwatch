@@ -14,7 +14,6 @@
  * -------------------------------------------------------------------------- */
 #include <stdio.h>
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-#include "bsp/esp_wrover_kit.h"
 #include "driver/gpio.h"
 #include "driver/gptimer.h"
 #include "esp_log.h"
@@ -24,31 +23,23 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-#include "lvgl.h"
 #include "sdkconfig.h"
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
 #include "sensors/sensors.h"
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
 #include "ui/ui.h"
-
-
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
  * -------------------------------------------------------------------------- */
 static const char *TAG = "SMARTWATCH";
 
-// LVGL
-#define LV_TICK_PERIOD_MS 1
-
-// Display
-#define APP_DISP_DEFAULT_BRIGHTNESS 100
-static lv_disp_t *display;
-
 // Sensors
 extern stmdev_ctx_t lsm6dso_dev_ctx, lis2mdl_dev_ctx;
 extern uint8_t LSM6DSO_whoamI, LIS2MDL_whoamI;
 
+// GPIOs
+#define BootBtn 0
 
 /* -----------------------------------------------------------------------------
  * PART 2 : Global Handlers
@@ -56,8 +47,9 @@ extern uint8_t LSM6DSO_whoamI, LIS2MDL_whoamI;
 QueueSetHandle_t QueueSet_Sem = NULL;
 SemaphoreHandle_t xSem_acq = NULL;
 SemaphoreHandle_t xSem_display = NULL;
+SemaphoreHandle_t xSem_clock = NULL;
+SemaphoreHandle_t xSem_btn = NULL;
 TaskHandle_t xHdl_ME = NULL;
-
 
 /* -----------------------------------------------------------------------------
  * PART 3 : Private Functions Declarations
@@ -71,9 +63,11 @@ void acq_timer_init(uint64_t period);
 static bool acq_timer_callback(gptimer_handle_t timer, const
                                gptimer_alarm_event_data_t *edata,
                                void *user_ctx);
-static void lv_tick_task(void *arg);
-
-void screen_init();
+void clock_timer_init(uint64_t period);
+static bool clock_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx);
+static void gpio_IRQ_handler(void *args);
 
 /* -----------------------------------------------------------------------------
  * PART 4 : app_main()
@@ -84,6 +78,11 @@ void app_main(void) {
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     // Step 1: Initialization
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+
+    gpio_reset_pin(BootBtn);
+	gpio_set_direction(BootBtn, GPIO_MODE_INPUT);
+	gpio_set_intr_type(BootBtn, GPIO_INTR_NEGEDGE);
+
     // Step 1.1 : Peripherals
     printf("Initialize I2C master and sensors... \n");
     ESP_ERROR_CHECK(i2c_master_init());
@@ -95,9 +94,13 @@ void app_main(void) {
     printf("Initialize Semaphore and Queue... \n");
     xSem_display = xSemaphoreCreateBinary();
     xSem_acq = xSemaphoreCreateBinary();
-    QueueSet_Sem = xQueueCreateSet(2);
+    xSem_clock = xSemaphoreCreateBinary();
+    xSem_btn = xSemaphoreCreateBinary();
+    QueueSet_Sem = xQueueCreateSet(4);
     xQueueAddToSet(xSem_display, QueueSet_Sem);
     xQueueAddToSet(xSem_acq, QueueSet_Sem);
+    xQueueAddToSet(xSem_clock, QueueSet_Sem);
+    xQueueAddToSet(xSem_btn, QueueSet_Sem);
 
     // Step 1.3 : Display, LVGL & UI
     printf("Initialize display, LVGL and UI...\n");
@@ -107,12 +110,16 @@ void app_main(void) {
     // Step 2: Tasks installation
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     xTaskCreate(ME, "ME", 4096, NULL, 1, &xHdl_ME);
-    
+
+    gpio_install_isr_service(0);
+	gpio_isr_handler_add(BootBtn, gpio_IRQ_handler,(void *)BootBtn);
+
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     // Step 3: Interrupts Routines and Timers IRQ
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
     acq_timer_init(1000 * 1000);    // Acquisition period : 1s
     display_timer_init(1000 * 300); // Display period : 300ms
+    clock_timer_init(1000 * 1000); // Test second hand timer
     
     ESP_LOGI(TAG, "Ended app_main() ---");
     fflush(stdout);
@@ -135,6 +142,16 @@ void ME(void *pvParameter) {
             get_LSM6DSO();
             get_LIS2MDL();
         } 
+        else if (xSemReceived == xSem_clock) {
+            ESP_LOGW(TAG, "Clock timer");
+            xSemaphoreTake(xSem_clock, 0);
+            clock_handler();
+        }
+        else if (xSemReceived == xSem_btn) {
+            ESP_LOGW(TAG, "Cycle screen");
+            xSemaphoreTake(xSem_btn, 0);
+            cycle_screen();
+        }
         else if (xSemReceived == xSem_display) {
             ESP_LOGW(TAG, "Update display");
             xSemaphoreTake(xSem_display, 0);
@@ -222,26 +239,44 @@ static bool IRAM_ATTR acq_timer_callback(gptimer_handle_t timer, const
 }
 
 /* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
- * Function : lv_tick_task('period in µs')
+ * Function : clock_timer_init('period in µs')
  * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
-static void lv_tick_task(void *arg) {
-    lv_tick_inc(LV_TICK_PERIOD_MS);
+void clock_timer_init(uint64_t period) {
+    gptimer_handle_t timer_clock_hdl = NULL;
+    gptimer_config_t timer_clock_cfg = {
+        .clk_src = GPTIMER_CLK_SRC_DEFAULT,
+        .direction = GPTIMER_COUNT_UP,
+        .resolution_hz = 1000*1000, // 1MHz
+    };
+    ESP_ERROR_CHECK(gptimer_new_timer(&timer_clock_cfg, &timer_clock_hdl));
+    gptimer_alarm_config_t alarm_clock_cfg = {
+        .alarm_count = period,
+        .reload_count = 0,
+        .flags.auto_reload_on_alarm = true,
+    };
+    ESP_ERROR_CHECK(gptimer_set_alarm_action(timer_clock_hdl,
+                                             &alarm_clock_cfg));
+    gptimer_event_callbacks_t timer_clock_cbs = {
+        .on_alarm = clock_timer_callback,
+    };
+    ESP_ERROR_CHECK(gptimer_register_event_callbacks(timer_clock_hdl,
+                                                     &timer_clock_cbs, NULL));
+    ESP_ERROR_CHECK(gptimer_enable(timer_clock_hdl));
+    ESP_ERROR_CHECK(gptimer_start(timer_clock_hdl));
 }
 
-void screen_init() {
-    display = bsp_display_start();
-    // bsp_display_rotate(display, 90); //Rotate display in landscape mode (90°)
-    // lv_disp_set_rotation(display, LV_DISP_ROT_90);
-    bsp_display_brightness_set(APP_DISP_DEFAULT_BRIGHTNESS);
-    bsp_display_lock(0);
-    ui_init();
-    bsp_display_unlock();
+/* --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+ * Function : clock_timer_callback()
+ * --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.-- */
+static bool IRAM_ATTR clock_timer_callback(gptimer_handle_t timer, const
+                                   gptimer_alarm_event_data_t *edata,
+                                   void *user_ctx) {
+    static BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(xSem_clock, &xHigherPriorityTaskWoken);
+    return true;
+}
 
-    const esp_timer_create_args_t periodic_timer_args = {
-		.callback = &lv_tick_task,
-		.name = "periodic_gui"
-	};
-	esp_timer_handle_t periodic_timer;
-	ESP_ERROR_CHECK(esp_timer_create(&periodic_timer_args, &periodic_timer));
-	ESP_ERROR_CHECK(esp_timer_start_periodic(periodic_timer, LV_TICK_PERIOD_MS * 1000));
+static void IRAM_ATTR gpio_IRQ_handler(void *args) {
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xSemaphoreGiveFromISR(xSem_btn, &xHigherPriorityTaskWoken);
 }
