@@ -310,6 +310,10 @@ void get_LSM6DSO() {
             lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_2, LSM6DSO_acceleration_mg[1]);
             lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_3, LSM6DSO_acceleration_mg[2]);
 
+            /* update_sensor_chart("accelerometer", 1, &LSM6DSO_acceleration_mg[0]);
+            update_sensor_chart("accelerometer", 2, &LSM6DSO_acceleration_mg[1]);
+            update_sensor_chart("accelerometer", 3, &LSM6DSO_acceleration_mg[2]); */
+
             log_acceleration_X[acc_index] = LSM6DSO_acceleration_mg[0];
             log_acceleration_Y[acc_index] = LSM6DSO_acceleration_mg[1];
             log_acceleration_Z[acc_index] = LSM6DSO_acceleration_mg[2];
@@ -334,6 +338,10 @@ void get_LSM6DSO() {
             lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_2, LSM6DSO_angular_rate_mdps[1] / 1000.0f);
             lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_3, LSM6DSO_angular_rate_mdps[2] / 1000.0f);
 
+            /* update_sensor_chart("gyro", 1, &LSM6DSO_angular_rate_mdps[0]);
+            update_sensor_chart("gyro", 2, &LSM6DSO_angular_rate_mdps[1]);
+            update_sensor_chart("gyro", 3, &LSM6DSO_angular_rate_mdps[2]); */
+
             log_angular_rate_X[gyro_index] = LSM6DSO_angular_rate_mdps[0];
             log_angular_rate_Y[gyro_index] = LSM6DSO_angular_rate_mdps[1];
             log_angular_rate_Z[gyro_index] = LSM6DSO_angular_rate_mdps[2];
@@ -353,6 +361,7 @@ void get_LSM6DSO() {
             LSM6DSO_temperature_degC = lsm6dso_from_lsb_to_celsius(LSM6DSO_raw_temperature);
             
             lv_chart_set_next_value(ui_TempChart, ui_TempChart_series_1, LSM6DSO_temperature_degC);
+            // update_sensor_chart("temp", 1, &LSM6DSO_temperature_degC);
 
             log_temperature[temp_index] = LSM6DSO_temperature_degC;
             temp_index++;
@@ -387,6 +396,10 @@ void get_LIS2MDL() {
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_1, LIS2MDL_magnetic_mG[0] / 1000.0f);
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_2, LIS2MDL_magnetic_mG[1]/ 1000.0f);
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_3, LIS2MDL_magnetic_mG[2] / 1000.0f);
+
+            /* update_sensor_chart("magnetometer", 1, &LIS2MDL_magnetic_mG[0]);
+            update_sensor_chart("magnetometer", 2, &LIS2MDL_magnetic_mG[1]);
+            update_sensor_chart("magnetometer", 3, &LIS2MDL_magnetic_mG[2]); */
 
             log_magnetic_X[mag_index] = LIS2MDL_magnetic_mG[0];
             log_magnetic_Y[mag_index] = LIS2MDL_magnetic_mG[1];

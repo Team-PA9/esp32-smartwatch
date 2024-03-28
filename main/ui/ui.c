@@ -64,30 +64,34 @@ void screen_init() {
     bsp_display_lock(0);
     ui_init();
 
-    ui_TempChart_series_1 = lv_chart_add_series(ui_TempChart, lv_color_hex(0xD21813), LV_CHART_AXIS_PRIMARY_Y);
+    // RED 0xE74C3C
+    // GREEN 0x2ECC71
+    // BLUE 0x3498DB
+
+    ui_TempChart_series_1 = lv_chart_add_series(ui_TempChart, lv_color_hex(0xE74C3C), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_TempChart, ui_TempChart_series_1, ui_TempChart_series_1_array);
     
-    ui_AccelerometerChart_series_1 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    ui_AccelerometerChart_series_1 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0xE74C3C), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_1, ui_AccelerometerChart_series_1_array);
-    ui_AccelerometerChart_series_2 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    ui_AccelerometerChart_series_2 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x2ECC71), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_2, ui_AccelerometerChart_series_2_array);
-    ui_AccelerometerChart_series_3 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    ui_AccelerometerChart_series_3 = lv_chart_add_series(ui_AccelerometerChart, lv_color_hex(0x3498DB), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_AccelerometerChart, ui_AccelerometerChart_series_3, ui_AccelerometerChart_series_3_array);
 
     
-    ui_GyroChart_series_1 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    ui_GyroChart_series_1 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0xE74C3C), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_GyroChart, ui_GyroChart_series_1, ui_GyroChart_series_1_array);
-    ui_GyroChart_series_2 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    ui_GyroChart_series_2 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0x2ECC71), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_GyroChart, ui_GyroChart_series_2, ui_GyroChart_series_2_array);
-    ui_GyroChart_series_3 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    ui_GyroChart_series_3 = lv_chart_add_series(ui_GyroChart, lv_color_hex(0x3498DB), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_GyroChart, ui_GyroChart_series_3, ui_GyroChart_series_3_array);
 
 
-    ui_MagnetometerChart_series_1 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x00FF00), LV_CHART_AXIS_PRIMARY_Y);
+    ui_MagnetometerChart_series_1 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0xE74C3C), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_1, ui_MagnetometerChart_series_1_array);
-    ui_MagnetometerChart_series_2 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x0000FF), LV_CHART_AXIS_PRIMARY_Y);
+    ui_MagnetometerChart_series_2 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x2ECC71), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_2, ui_MagnetometerChart_series_2_array);
-    ui_MagnetometerChart_series_3 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0xFF0000), LV_CHART_AXIS_PRIMARY_Y);
+    ui_MagnetometerChart_series_3 = lv_chart_add_series(ui_MagnetometerChart, lv_color_hex(0x3498DB), LV_CHART_AXIS_PRIMARY_Y);
     lv_chart_set_ext_y_array(ui_MagnetometerChart, ui_MagnetometerChart_series_3, ui_MagnetometerChart_series_3_array);
 
     bsp_display_unlock();
@@ -138,39 +142,63 @@ void cycle_screen() {
     bsp_display_lock(0);
     switch (screen) {
         case 0:
-            // lv_scr_load(ui_WatchScreen);
             lv_scr_load_anim(ui_WatchScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 1:
-            // lv_scr_load(ui_CalendarScreen);
-            lv_scr_load_anim(ui_CalendarScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
-            break;
-        case 2:
-            // lv_scr_load(ui_TempScreen);
             lv_scr_load_anim(ui_TempScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
+        case 2:
+            lv_scr_load_anim(ui_GyroScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+            break;
         case 3:
-            // lv_scr_load(ui_AccelerometerScreen);
             lv_scr_load_anim(ui_AccelerometerScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         case 4:
-            // lv_scr_load(ui_GyroScreen);
-            lv_scr_load_anim(ui_GyroScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+            lv_scr_load_anim(ui_MagnetometerScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false); 
             break;
         case 5:
-            // lv_scr_load(ui_MagnetometerScreen);
-            lv_scr_load_anim(ui_MagnetometerScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
+             lv_scr_load_anim(ui_CalendarScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
         default:
             screen = 0;
-            // lv_scr_load(ui_WatchScreen);
             lv_scr_load_anim(ui_WatchScreen, LV_SCR_LOAD_ANIM_FADE_OUT, 1000, 0, false);
             break;
     }
     bsp_display_unlock();
 }
 
+void update_sensor_chart(const char* sensor, int series_index, float* value) {
+    if (strcmp(sensor, "temp") == 0 && screen == 1) {
+        lv_chart_set_next_value(ui_TempChart, ui_TempChart_series_1, *value);
+    } else if (strcmp(sensor, "gyro") == 0 && screen == 2) {
+        if (series_index == 1) {
+            lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_1, *value / 1000.0f);
+        } else if (series_index == 2) {
+            lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_2, *value / 1000.0f);
+        } else if (series_index == 3) {
+            lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_3, *value / 1000.0f);
+        } else if (series_index == 3) {
+            
+        }
+    } else if (strcmp(sensor, "accelerometer") == 0 && screen == 3) {
+        if (series_index == 1) {
+            lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_1, *value);
+        } else if (series_index == 2) {
+            lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_2, *value);
+        } else if (series_index == 3) {
+            lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_3, *value);
+        } 
+    } else if (strcmp(sensor, "magnetometer") == 0 && screen == 4) {
+        if (series_index == 1) {
+            lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_1, *value / 1000.0f);
+        } else if (series_index == 2) {
+            lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_2, *value / 1000.0f);
+        } else if (series_index == 3) {
+            lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_3, *value / 1000.0f);
+        }
+    }
+}
+
 void lv_tick_task(void *arg) {
     lv_tick_inc(LV_TICK_PERIOD_MS);
 }
-

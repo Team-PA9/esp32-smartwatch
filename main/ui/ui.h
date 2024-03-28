@@ -13,6 +13,7 @@
 void screen_init();
 void clock_handler();
 void cycle_screen();
+void update_sensor_chart(const char* sensor, int series_index, float* value);
 
 void lv_tick_task(void *arg);
 
