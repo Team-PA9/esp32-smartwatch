@@ -3,13 +3,13 @@ menu "ESP32 Private Configuration"
 	menu "I2C Master"
 	    config I2C_MASTER_SCL
 	        int "SCL GPIO Num"
-	        default 22
+	        default 14
 	        help
 	            GPIO number for I2C Master clock line.
 	
 	    config I2C_MASTER_SDA
 	        int "SDA GPIO Num"
-	        default 21
+	        default 27
 	        help
 	            GPIO number for I2C Master data line.
 	
@@ -24,6 +24,20 @@ menu "ESP32 Private Configuration"
 	        default 100000
 	        help
 	        	I2C Speed of Master device.
+	endmenu
+
+	menu "WIFI Config"
+		config WIFI_SSID
+			string CONFIG_ESP_WIFI_SSID
+			default "putwifihere"
+			help
+				SSID of the WIFI network.
+
+		config WIFI_PASSWORD
+			string CONFIG_ESP_WIFI_PASSWORD
+			default "putpasswordhere"
+			help
+				Password of the WIFI network.
 	endmenu
 	
 endmenu
