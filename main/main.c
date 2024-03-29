@@ -25,6 +25,7 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
+#include "ble/ble_init.h"
 #include "sensors/sensors.h"
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
@@ -37,6 +38,7 @@ static const char *TAG = "SMARTWATCH";
 // Sensors
 extern stmdev_ctx_t lsm6dso_dev_ctx, lis2mdl_dev_ctx;
 extern uint8_t LSM6DSO_whoamI, LIS2MDL_whoamI;
+extern char shared_buf[5];
 
 // GPIOs
 #define BootBtn 0
@@ -90,8 +92,21 @@ void app_main(void) {
 	ESP_ERROR_CHECK(lis2mdl_init());
     ESP_ERROR_CHECK(whoami_check());
 
-    // Step 1.2 : Semaphore, Queue
-    printf("Initialize Semaphore and Queue... \n");
+    // Step 1.2 : Bluetooth Low Energy
+    printf("Initializing Bluetooth Low Energy... \n");
+    ble_init();
+
+    char temp_tab[5] = {'2', '2', '.', '0', '0'};
+    for (uint8_t i=0; i<5;i++) {
+        shared_buf[i] = temp_tab[i];
+    }
+
+    esp_ble_gap_register_callback(gap_event_handler);
+	esp_ble_gatts_register_callback(gatts_event_handler);
+	esp_ble_gatts_app_register(PROFILE_APP_ID);
+
+    // Step 1.3 : Semaphore, Queue
+    printf("Initializing Semaphore and Queue... \n");
     xSem_display = xSemaphoreCreateBinary();
     xSem_acq = xSemaphoreCreateBinary();
     xSem_clock = xSemaphoreCreateBinary();
@@ -102,8 +117,9 @@ void app_main(void) {
     xQueueAddToSet(xSem_clock, QueueSet_Sem);
     xQueueAddToSet(xSem_btn, QueueSet_Sem);
 
-    // Step 1.3 : Display, LVGL & UI
-    printf("Initialize display, LVGL and UI...\n");
+
+    // Step 1.4 : Display, LVGL & UI
+    printf("Initializing display, LVGL and UI...\n");
     screen_init();
 
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
