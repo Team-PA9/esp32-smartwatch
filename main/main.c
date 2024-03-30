@@ -24,8 +24,8 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
-// --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
-#include "ble/ble_init.h"
+// --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--*
+#include "ble/ble.h"
 #include "sensors/sensors.h"
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
@@ -95,15 +95,6 @@ void app_main(void) {
     // Step 1.2 : Bluetooth Low Energy
     printf("Initializing Bluetooth Low Energy... \n");
     ble_init();
-
-    char temp_tab[5] = {'2', '2', '.', '0', '0'};
-    for (uint8_t i=0; i<5;i++) {
-        shared_buf[i] = temp_tab[i];
-    }
-
-    esp_ble_gap_register_callback(gap_event_handler);
-	esp_ble_gatts_register_callback(gatts_event_handler);
-	esp_ble_gatts_app_register(PROFILE_APP_ID);
 
     // Step 1.3 : Semaphore, Queue
     printf("Initializing Semaphore and Queue... \n");
