@@ -6,6 +6,7 @@
 #include "lvgl.h"
 #include "ui/ui.h"
 #include "squareline-ui/ui.h"
+#include "rtc/rtc_proj.h"
 
 // Includes
 #define LV_TICK_PERIOD_MS 1
@@ -107,33 +108,22 @@ void screen_init() {
 
 void clock_handler() {
     if (screen == 0) {
-        static uint8_t sec = 0;
-        static uint8_t min = 0;
-        static uint8_t hour = 0;
-        sec++;
 
-        if (sec == 60) {
-            sec = 0;
-            min++;
-        }
-
-        if (min == 60) {
-            min = 0;
-            hour++;
-        }
-
-        if (hour == 24) {
-            hour = 0;
-        }
+        uint8_t seconds = 0;
+        uint8_t minutes = 0;
+        uint8_t hours = 0;
+        
+        // Call the function to get the current time components
+        get_time_components(&hours, &minutes, &seconds);
 
         // Rotate the second hand by 6 degrees each second
-        lv_img_set_angle(ui_SecondHand, (sec * 6) * 10);
+        lv_img_set_angle(ui_SecondHand, (seconds * 6) * 10);
 
         // Rotate the minute hand by 6 degrees each minute
-        lv_img_set_angle(ui_BigHand, (min * 6) * 10);
+        lv_img_set_angle(ui_BigHand, (minutes * 6) * 10);
 
         // Rotate the hour hand by 30 degrees each hour
-        lv_img_set_angle(ui_LittleHand, (hour * 30) * 10);
+        lv_img_set_angle(ui_LittleHand, (hours * 30) * 10);
     }
 }
 

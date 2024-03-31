@@ -11,8 +11,16 @@
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-static void event_handler(void* arg, esp_event_base_t event_base,
-                                int32_t event_id, void* event_data);
+#include "time.h"
+#include "rtc.h"
 
-void wifi_init_sta(void);
+#include "esp_sntp.h"
 
+#ifndef NTP_PROJ_H
+#define NTP_PROJ_H
+
+void time_sync_notification_cb(struct timeval *tv);
+void get_time();
+void sntp_init();
+
+#endif

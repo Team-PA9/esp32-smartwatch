@@ -24,12 +24,16 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
+#include "nvs_flash.h"
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--*
 #include "ble/ble.h"
 #include "sensors/sensors.h"
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
 #include "ui/ui.h"
+#include "wifi/wifi_proj.h"
+#include "rtc/rtc_proj.h"
+#include "ntp/ntp_proj.h"
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
  * -------------------------------------------------------------------------- */
@@ -91,12 +95,38 @@ void app_main(void) {
     ESP_ERROR_CHECK(lsm6dso_init());
 	ESP_ERROR_CHECK(lis2mdl_init());
     ESP_ERROR_CHECK(whoami_check());
-
+    
     // Step 1.2 : Bluetooth Low Energy
     printf("Initializing Bluetooth Low Energy... \n");
     ble_init();
 
-    // Step 1.3 : Semaphore, Queue
+    // Step 1.4 : Flash initialization
+    printf("Initialize NVS flash... \n");
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error (%s) initializing NVS flash", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "NVS flash initialized");
+    }
+
+    // Step 1.5 : RTC initialization
+    printf("Initialize RTC...\n");
+    tz_init();
+    
+    // Step 1.6 : WIFI initialization
+    printf("Initialize WIFI...\n");
+    wifi_init();
+
+    // Step 1.7 : SNTP initialization
+    printf("Initialize SNTP...\n");
+    sntp_init(); 
+
+    // Step 1.8 : Semaphore, Queue
     printf("Initializing Semaphore and Queue... \n");
     xSem_display = xSemaphoreCreateBinary();
     xSem_acq = xSemaphoreCreateBinary();
@@ -108,9 +138,8 @@ void app_main(void) {
     xQueueAddToSet(xSem_clock, QueueSet_Sem);
     xQueueAddToSet(xSem_btn, QueueSet_Sem);
 
-
-    // Step 1.4 : Display, LVGL & UI
-    printf("Initializing display, LVGL and UI...\n");
+    // Step 1.9 : Display, LVGL & UI
+    printf("Initialize display, LVGL and UI...\n");
     screen_init();
 
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--

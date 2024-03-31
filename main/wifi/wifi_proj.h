@@ -7,16 +7,16 @@
 #include "esp_event.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+#include "sdkconfig.h"
 
 #include "lwip/err.h"
 #include "lwip/sys.h"
 
-#include "time.h"
-#include "rtc.h"
+#ifndef WIFI_PROJ_H
+#define WIFI_PROJ_H
 
-#include "esp_sntp.h"
+void event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data);
 
-void time_sync_notification_cb(struct timeval *tv);
-static void initialize_sntp(void);
-static void obtain_time(void);
-void Set_SystemTime_SNTP();
+void wifi_init(void);
+
+#endif
