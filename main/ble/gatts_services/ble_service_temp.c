@@ -5,6 +5,10 @@
 #include "ble/gatts_services/ble_service_temp.h"
 #include "ble/ble_utils.h"
 
+#include "esp_gatts_api.h"
+
+#include "esp_log.h"
+
 #define GATTS_DEMO_CHAR_VAL_LEN_MAX 500
 
 const uint16_t GATTS_SERVICE_UUID_TEMP = 0x0400;
@@ -23,7 +27,7 @@ const esp_gatts_attr_db_t temp_gatts_db[NB_TEMP_IDX] = {
     // Characteristic Declaration
     [IDX_CHAR_TEMP]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
     // Characteristic Value
     [IDX_CHAR_VAL_TEMP] =

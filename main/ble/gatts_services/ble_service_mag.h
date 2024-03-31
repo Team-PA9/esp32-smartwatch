@@ -18,6 +18,7 @@ extern const esp_gatts_attr_db_t mag_gatts_db[];
 
 enum mag_enum_gatts {
     IDX_SVC_MAG,
+    
     IDX_CHAR_MAG_X,
     IDX_CHAR_VAL_MAG_X,
 

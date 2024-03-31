@@ -20,22 +20,6 @@ typedef struct {
     int prepare_len;
 } prepare_type_env_t;
 
-/* Attributes State Machine */
-/* enum {
-    IDX_SVC,
-    IDX_CHAR_A,
-    IDX_CHAR_VAL_A,
-    // IDX_CHAR_CFG_A,
-
-    IDX_CHAR_B,
-    IDX_CHAR_VAL_B,
-
-    IDX_CHAR_C,
-    IDX_CHAR_VAL_C,
-
-    HRS_IDX_NB,
-}; */
-
 void gatts_profile_event_handler(esp_gatts_cb_event_t event,esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 void example_prepare_write_event_env(esp_gatt_if_t gatts_if, prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);
 void example_exec_write_event_env(prepare_type_env_t *prepare_write_env, esp_ble_gatts_cb_param_t *param);

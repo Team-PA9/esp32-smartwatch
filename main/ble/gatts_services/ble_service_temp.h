@@ -12,6 +12,7 @@ extern const esp_gatts_attr_db_t temp_gatts_db[];
 
 enum temp_enum_gatts {
     IDX_SVC_TEMP,
+
     IDX_CHAR_TEMP,
     IDX_CHAR_VAL_TEMP,
     

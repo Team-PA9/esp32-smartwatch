@@ -23,7 +23,7 @@ const esp_gatts_attr_db_t gyro_gatts_db[NB_GYRO_IDX] = {
     // Characteristic Declaration
     [IDX_CHAR_GYRO_X]     =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
     
     // Characteristic Value
     [IDX_CHAR_VAL_GYRO_X] =
@@ -33,7 +33,7 @@ const esp_gatts_attr_db_t gyro_gatts_db[NB_GYRO_IDX] = {
     // Characteristic Declaration
     [IDX_CHAR_GYRO_Y]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
     // Characteristic Value
     [IDX_CHAR_VAL_GYRO_Y]  =
@@ -43,7 +43,7 @@ const esp_gatts_attr_db_t gyro_gatts_db[NB_GYRO_IDX] = {
     // Characteristic Declaration
     [IDX_CHAR_GYRO_Z]      =
     {{ESP_GATT_AUTO_RSP}, {ESP_UUID_LEN_16, (uint8_t *)&character_declaration_uuid, ESP_GATT_PERM_READ,
-      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read_write}},
+      CHAR_DECLARATION_SIZE, CHAR_DECLARATION_SIZE, (uint8_t *)&char_prop_read}},
 
     // Characteristic Value
     [IDX_CHAR_VAL_GYRO_Z]  =

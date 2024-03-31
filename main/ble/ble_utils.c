@@ -46,9 +46,3 @@ void update_characteristic_value(uint16_t handle, void *value, size_t valueSize)
     // Set the attribute value with the UTF-8 representation
     esp_ble_gatts_set_attr_value(handle, length, utf8Value);
 }
-
-
-#include "ble_utils.h"
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>

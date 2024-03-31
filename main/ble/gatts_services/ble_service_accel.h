@@ -18,6 +18,7 @@ extern const esp_gatts_attr_db_t accel_gatts_db[];
 
 enum accel_enum_gatts {
     IDX_SVC_ACCEL,
+    
     IDX_CHAR_ACCEL_X,
     IDX_CHAR_VAL_ACCEL_X,
 

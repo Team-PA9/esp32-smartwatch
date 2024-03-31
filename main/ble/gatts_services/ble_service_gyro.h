@@ -16,8 +16,10 @@ extern uint16_t gyro_handle_table[];
 
 extern const esp_gatts_attr_db_t gyro_gatts_db[];
 
-enum gyro_enum_gatts{
+enum gyro_enum_gatts {
+
     IDX_SVC_GYRO,
+    
     IDX_CHAR_GYRO_X,
     IDX_CHAR_VAL_GYRO_X,
 

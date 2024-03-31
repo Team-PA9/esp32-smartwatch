@@ -198,42 +198,38 @@ void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
                 // the data length of gattc write  must be less than GATTS_DEMO_CHAR_VAL_LEN_MAX.
                 ESP_LOGI(LOG_TAG, "GATT_WRITE_EVT, handle = %d, value len = %d, value :", param->write.handle, param->write.len);
                 esp_log_buffer_hex(LOG_TAG, param->write.value, param->write.len);
-                /* if (app_handle_table[IDX_CHAR_CFG_A] == param->write.handle && param->write.len == 2){
-                    uint16_t descr_value = param->write.value[1]<<8 | param->write.value[0];
-                    if (descr_value == 0x0001){
-                        ESP_LOGI(LOG_TAG, "notify enable");
-                        uint8_t notify_data[15];
-                        for (int i = 0; i < sizeof(notify_data); ++i)
-                        {
-                            notify_data[i] = i % 0xff;
+                
+                /*
+                if (temp_handle_table[IDX_CHAR_CFG_TEMP] == param->write.handle && param->write.len == 2) {
+                    uint16_t descr_value = param->write.value[1] << 8 | param->write.value[0];
+
+                    if (temp_handle_table[IDX_CHAR_CFG_TEMP] == param->write.handle) {
+                        if (descr_value == 0x0001) {
+                            ESP_LOGI("test", "temp_cfg_handler: Notify enable");
+                            uint8_t notify_data[15];
+                            for (int i = 0; i < sizeof(notify_data); ++i) {
+                                notify_data[i] = i % 0xff;
+                            }
+                            //the size of notify_data[] need less than MTU size
+                            esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, temp_handle_table[IDX_CHAR_CFG_TEMP], sizeof(notify_data), notify_data, false);
+                        } else if (descr_value == 0x0002) {
+                            ESP_LOGI("test", "temp_cfg_handler: Indicate enable");
+                            uint8_t indicate_data[15];
+                            for (int i = 0; i < sizeof(indicate_data); ++i) {
+                                indicate_data[i] = i % 0xff;
+                            }
+                            //the size of indicate_data[] need less than MTU size
+                            esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, temp_handle_table[IDX_CHAR_CFG_TEMP], sizeof(indicate_data), indicate_data, true);
+                        } else if (descr_value == 0x0000) {
+                            ESP_LOGI("test", "temp_cfg_handler: Notify/Indicate disable ");
+                        } else {
+                            ESP_LOGE("test", "temp_cfg_handler: Unknown value");
                         }
-                        //the size of notify_data[] need less than MTU size
-                        esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, app_handle_table[IDX_CHAR_VAL_A],
-                                                sizeof(notify_data), notify_data, false);
-                    }else if (descr_value == 0x0002){
-                        ESP_LOGI(LOG_TAG, "indicate enable");
-                        uint8_t indicate_data[15];
-                        for (int i = 0; i < sizeof(indicate_data); ++i)
-                        {
-                            indicate_data[i] = i % 0xff;
-                        }
-
-                        // if want to change the value in server database, call:
-                        // esp_ble_gatts_set_attr_value(app_handle_table[IDX_CHAR_VAL_A], sizeof(indicate_data), indicate_data);
-
-
-                        //the size of indicate_data[] need less than MTU size
-                        esp_ble_gatts_send_indicate(gatts_if, param->write.conn_id, app_handle_table[IDX_CHAR_VAL_A],
-                                            sizeof(indicate_data), indicate_data, true);
+                    } else {
+                        ESP_LOGE("test", "temp_cfg_handler: Unknown handle");
                     }
-                    else if (descr_value == 0x0000){
-                        ESP_LOGI(LOG_TAG, "notify/indicate disable ");
-                    }else{
-                        ESP_LOGE(LOG_TAG, "unknown descr value");
-                        esp_log_buffer_hex(LOG_TAG, param->write.value, param->write.len);
-                    }
-
                 } */
+
                 /* send response when param->write.need_rsp is true*/
                 if (param->write.need_rsp){
                     esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
@@ -274,26 +270,6 @@ void gatts_profile_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts
             ESP_LOGI(LOG_TAG, "ESP_GATTS_DISCONNECT_EVT, reason = 0x%x", param->disconnect.reason);
             esp_ble_gap_start_advertising(&adv_params);
             break;
-        /* case ESP_GATTS_CREAT_ATTR_TAB_EVT:{ 
-            if (param->add_attr_tab.status != ESP_GATT_OK){
-                ESP_LOGE(LOG_TAG, "create attribute table failed, error code=0x%x", param->add_attr_tab.status);
-            }
-            else {
-                ESP_LOGI(LOG_TAG, "create attribute table successfully, the number handle = %d",param->add_attr_tab.num_handle);
-                memcpy(gyro_handle_table, param->add_attr_tab.handles, sizeof(gyro_handle_table));
-                esp_ble_gatts_start_service(gyro_handle_table[IDX_SVC_GYRO]);
-
-                memcpy(accel_handle_table, param->add_attr_tab.handles, sizeof(accel_handle_table));
-                esp_ble_gatts_start_service(accel_handle_table[IDX_SVC_ACCEL]);
-
-                memcpy(mag_handle_table, param->add_attr_tab.handles, sizeof(mag_handle_table));
-                esp_ble_gatts_start_service(mag_handle_table[IDX_SVC_MAG]);
-
-                memcpy(temp_handle_table, param->add_attr_tab.handles, sizeof(temp_handle_table));
-                esp_ble_gatts_start_service(temp_handle_table[IDX_SVC_TEMP]);
-            }
-            break;
-        } */
         case ESP_GATTS_CREAT_ATTR_TAB_EVT: {
             if (param->add_attr_tab.status != ESP_GATT_OK) {
                 ESP_LOGE(LOG_TAG,"create attribute table failed, error code=0x%x", param->add_attr_tab.status);
