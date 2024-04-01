@@ -124,7 +124,7 @@ void app_main(void) {
 
     // Step 1.7 : SNTP initialization
     printf("Initialize SNTP...\n");
-    sntp_init(); 
+    es_sntp_init(); 
 
     // Step 1.8 : Semaphore, Queue
     printf("Initializing Semaphore and Queue... \n");

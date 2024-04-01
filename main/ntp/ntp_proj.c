@@ -38,10 +38,10 @@ void get_time() {
     }
     
     time(&now);
-    localtime_r(&now, &timeinfo)
+    localtime_r(&now, &timeinfo);
 }
 
-void sntp_init()  {
+void es_sntp_init() {
 	time_t now;
     struct tm timeinfo;
 

@@ -21,6 +21,6 @@
 
 void time_sync_notification_cb(struct timeval *tv);
 void get_time();
-void sntp_init();
+void es_sntp_init();
 
 #endif
