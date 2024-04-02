@@ -26,6 +26,11 @@
 #include "squareline-ui/ui.h"
 #include "lvgl.h"
 
+#include "ble/gatts_services/ble_service_gyro.h"
+#include "ble/gatts_services/ble_service_accel.h"
+#include "ble/gatts_services/ble_service_mag.h"
+#include "ble/gatts_services/ble_service_temp.h"
+
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
  * -------------------------------------------------------------------------- */
@@ -310,6 +315,10 @@ void get_LSM6DSO() {
             lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_2, LSM6DSO_acceleration_mg[1]);
             lv_chart_set_next_value(ui_AccelerometerChart, ui_AccelerometerChart_series_3, LSM6DSO_acceleration_mg[2]);
 
+            accel_x_update_value(&LSM6DSO_acceleration_mg[0]);
+            accel_y_update_value(&LSM6DSO_acceleration_mg[1]);
+            accel_z_update_value(&LSM6DSO_acceleration_mg[2]);
+
             /* update_sensor_chart("accelerometer", 1, &LSM6DSO_acceleration_mg[0]);
             update_sensor_chart("accelerometer", 2, &LSM6DSO_acceleration_mg[1]);
             update_sensor_chart("accelerometer", 3, &LSM6DSO_acceleration_mg[2]); */
@@ -338,6 +347,10 @@ void get_LSM6DSO() {
             lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_2, LSM6DSO_angular_rate_mdps[1] / 1000.0f);
             lv_chart_set_next_value(ui_GyroChart, ui_GyroChart_series_3, LSM6DSO_angular_rate_mdps[2] / 1000.0f);
 
+            gyro_x_update_value(&LSM6DSO_angular_rate_mdps[0]);
+            gyro_y_update_value(&LSM6DSO_angular_rate_mdps[1]);
+            gyro_z_update_value(&LSM6DSO_angular_rate_mdps[2]);
+
             /* update_sensor_chart("gyro", 1, &LSM6DSO_angular_rate_mdps[0]);
             update_sensor_chart("gyro", 2, &LSM6DSO_angular_rate_mdps[1]);
             update_sensor_chart("gyro", 3, &LSM6DSO_angular_rate_mdps[2]); */
@@ -362,6 +375,8 @@ void get_LSM6DSO() {
             
             lv_chart_set_next_value(ui_TempChart, ui_TempChart_series_1, LSM6DSO_temperature_degC);
             // update_sensor_chart("temp", 1, &LSM6DSO_temperature_degC);
+
+            temp_update_value(&LSM6DSO_temperature_degC);
 
             log_temperature[temp_index] = LSM6DSO_temperature_degC;
             temp_index++;
@@ -396,6 +411,10 @@ void get_LIS2MDL() {
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_1, LIS2MDL_magnetic_mG[0] / 1000.0f);
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_2, LIS2MDL_magnetic_mG[1]/ 1000.0f);
             lv_chart_set_next_value(ui_MagnetometerChart, ui_MagnetometerChart_series_3, LIS2MDL_magnetic_mG[2] / 1000.0f);
+
+            mag_x_update_value(&LIS2MDL_magnetic_mG[0]);
+            mag_y_update_value(&LIS2MDL_magnetic_mG[1]);
+            mag_z_update_value(&LIS2MDL_magnetic_mG[2]);
 
             /* update_sensor_chart("magnetometer", 1, &LIS2MDL_magnetic_mG[0]);
             update_sensor_chart("magnetometer", 2, &LIS2MDL_magnetic_mG[1]);

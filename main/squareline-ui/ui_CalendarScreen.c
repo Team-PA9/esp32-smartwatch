@@ -13,7 +13,7 @@ lv_obj_set_style_bg_color(ui_CalendarScreen, lv_color_hex(0x010000), LV_PART_MAI
 lv_obj_set_style_bg_opa(ui_CalendarScreen, 255, LV_PART_MAIN| LV_STATE_DEFAULT);
 
 ui_Calendar = lv_calendar_create(ui_CalendarScreen);
-lv_obj_t *ui_Calendar_header = lv_calendar_header_arrow_create(ui_Calendar);
+lv_calendar_header_arrow_create(ui_Calendar);
 lv_obj_set_width( ui_Calendar, 320);
 lv_obj_set_height( ui_Calendar, 240);
 lv_obj_set_align( ui_Calendar, LV_ALIGN_CENTER );
