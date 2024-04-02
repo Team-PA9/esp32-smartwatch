@@ -24,12 +24,16 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
+#include "nvs_flash.h"
 // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--*
 #include "ble/ble.h"
 #include "sensors/sensors.h"
 #include "sensors/lis2mdl_reg.h"
 #include "sensors/lsm6dso_reg.h"
 #include "ui/ui.h"
+#include "wifi/wifi_proj.h"
+#include "rtc/rtc_proj.h"
+#include "ntp/ntp_proj.h"
 /* -----------------------------------------------------------------------------
  * PART 1 : Global Defines, Variables & Structures
  * -------------------------------------------------------------------------- */
@@ -52,6 +56,9 @@ SemaphoreHandle_t xSem_display = NULL;
 SemaphoreHandle_t xSem_clock = NULL;
 SemaphoreHandle_t xSem_btn = NULL;
 TaskHandle_t xHdl_ME = NULL;
+TaskHandle_t xHdl_WiFi_init = NULL;
+
+SemaphoreHandle_t xBlockFlash = NULL;
 
 /* -----------------------------------------------------------------------------
  * PART 3 : Private Functions Declarations
@@ -70,6 +77,7 @@ static bool clock_timer_callback(gptimer_handle_t timer, const
                                    gptimer_alarm_event_data_t *edata,
                                    void *user_ctx);
 static void gpio_IRQ_handler(void *args);
+void flash_init();
 
 /* -----------------------------------------------------------------------------
  * PART 4 : app_main()
@@ -92,11 +100,27 @@ void app_main(void) {
 	ESP_ERROR_CHECK(lis2mdl_init());
     ESP_ERROR_CHECK(whoami_check());
 
-    // Step 1.2 : Bluetooth Low Energy
+    xBlockFlash = xSemaphoreCreateBinary();
+    
+    xSemaphoreTake(xBlockFlash, 0);
+    // Step 1.3 : Flash initialization
+    printf("Initialize NVS flash... \n");
+    flash_init();
+
+    // Step 1.4 : RTC initialization
+    printf("Initialize RTC...\n");
+    tz_init();
+    
+    // Step 1.6 : Wi-Fi initialization & NTP synchronization
+    // We use a task to initialize the Wi-Fi asynchronously
+    printf("Initialize WIFI...\n");
+    xTaskCreate(task_wifi_init, "task_wifi_init", 4096, NULL, 1, &xHdl_WiFi_init);
+
+    // Step 1.7 : Bluetooth Low Energy
     printf("Initializing Bluetooth Low Energy... \n");
     ble_init();
 
-    // Step 1.3 : Semaphore, Queue
+    // Step 1.8 : Semaphore, Queue
     printf("Initializing Semaphore and Queue... \n");
     xSem_display = xSemaphoreCreateBinary();
     xSem_acq = xSemaphoreCreateBinary();
@@ -108,9 +132,8 @@ void app_main(void) {
     xQueueAddToSet(xSem_clock, QueueSet_Sem);
     xQueueAddToSet(xSem_btn, QueueSet_Sem);
 
-
-    // Step 1.4 : Display, LVGL & UI
-    printf("Initializing display, LVGL and UI...\n");
+    // Step 1.9 : Display, LVGL & UI
+    printf("Initialize display, LVGL and UI...\n");
     screen_init();
 
     // --.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--.--
@@ -286,4 +309,22 @@ static bool IRAM_ATTR clock_timer_callback(gptimer_handle_t timer, const
 static void IRAM_ATTR gpio_IRQ_handler(void *args) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xSemaphoreGiveFromISR(xSem_btn, &xHigherPriorityTaskWoken);
+}
+
+void flash_init() {
+    esp_err_t ret = nvs_flash_init();
+
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error (%s) initializing NVS flash", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "NVS flash initialized");
+    }
+
+    xSemaphoreGive(xBlockFlash);
 }
