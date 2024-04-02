@@ -56,3 +56,17 @@ void get_time_components(uint8_t *hours, uint8_t *minutes, uint8_t *seconds)
     *minutes = timeinfo.tm_min;
     *seconds = timeinfo.tm_sec;
 }
+
+void get_date_components(uint8_t *day, uint8_t *month, uint16_t *year) {
+    time_t now;
+    struct tm timeinfo;
+
+    // Get current time
+    time(&now);
+    localtime_r(&now, &timeinfo);
+
+    // Extract date components
+    *day = timeinfo.tm_mday;
+    *month = timeinfo.tm_mon + 1;
+    *year = timeinfo.tm_year + 1900;
+}
