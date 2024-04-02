@@ -55,6 +55,8 @@ static lv_coord_t ui_MagnetometerChart_series_2_array[] = { 0,0,0,0,0,0,0,0,0,0 
 lv_chart_series_t* ui_MagnetometerChart_series_3;
 static lv_coord_t ui_MagnetometerChart_series_3_array[] = { 0,0,0,0,0,0,0,0,0,0 };
 
+extern lv_obj_t *ui_Calendar;
+
 void screen_init() {
     display = bsp_display_start();
 
@@ -124,6 +126,21 @@ void clock_handler() {
 
         // Rotate the hour hand by 30 degrees each hour
         lv_img_set_angle(ui_LittleHand, (hours * 30) * 10);
+    }
+
+    if (screen == 5) {
+        uint8_t day = 0;
+        uint8_t month = 0;
+        uint16_t year = 0;
+        uint8_t hour = 0;
+        uint8_t minute = 0;
+        uint8_t second = 0;
+
+        get_time_components(&hour, &minute, &second);
+        get_date_components(&day, &month, &year);
+
+        lv_calendar_set_today_date(ui_Calendar, year, month, day);
+        lv_calendar_set_showed_date(ui_Calendar, year, month);
     }
 }
 

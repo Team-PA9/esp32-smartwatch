@@ -113,6 +113,7 @@ void app_main(void) {
     
     // Step 1.6 : Wi-Fi initialization & NTP synchronization
     // We use a task to initialize the Wi-Fi asynchronously
+    // We could definitely use more tasks to handle async initizalization, due to lack of time we will keep it simple for now.
     printf("Initialize WIFI...\n");
     xTaskCreate(task_wifi_init, "task_wifi_init", 4096, NULL, 1, &xHdl_WiFi_init);
 
