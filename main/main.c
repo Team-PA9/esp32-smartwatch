@@ -57,6 +57,8 @@ SemaphoreHandle_t xSem_clock = NULL;
 SemaphoreHandle_t xSem_btn = NULL;
 TaskHandle_t xHdl_ME = NULL;
 
+SemaphoreHandle_t xBlockFlash = NULL;
+
 /* -----------------------------------------------------------------------------
  * PART 3 : Private Functions Declarations
  * -------------------------------------------------------------------------- */
@@ -74,6 +76,7 @@ static bool clock_timer_callback(gptimer_handle_t timer, const
                                    gptimer_alarm_event_data_t *edata,
                                    void *user_ctx);
 static void gpio_IRQ_handler(void *args);
+void flash_init();
 
 /* -----------------------------------------------------------------------------
  * PART 4 : app_main()
@@ -95,24 +98,13 @@ void app_main(void) {
     ESP_ERROR_CHECK(lsm6dso_init());
 	ESP_ERROR_CHECK(lis2mdl_init());
     ESP_ERROR_CHECK(whoami_check());
-    
-    // Step 1.2 : Bluetooth Low Energy
-    printf("Initializing Bluetooth Low Energy... \n");
-    ble_init();
 
-    // Step 1.4 : Flash initialization
+    xBlockFlash = xSemaphoreCreateBinary();
+    
+    xSemaphoreTake(xBlockFlash, 0);
+    // Step 1.3 : Flash initialization
     printf("Initialize NVS flash... \n");
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Error (%s) initializing NVS flash", esp_err_to_name(ret));
-    } else {
-        ESP_LOGI(TAG, "NVS flash initialized");
-    }
+    flash_init();
 
     // Step 1.5 : RTC initialization
     printf("Initialize RTC...\n");
@@ -125,6 +117,10 @@ void app_main(void) {
     // Step 1.7 : SNTP initialization
     printf("Initialize SNTP...\n");
     es_sntp_init(); 
+
+    // Step 1.4 : Bluetooth Low Energy
+    printf("Initializing Bluetooth Low Energy... \n");
+    ble_init();
 
     // Step 1.8 : Semaphore, Queue
     printf("Initializing Semaphore and Queue... \n");
@@ -315,4 +311,22 @@ static bool IRAM_ATTR clock_timer_callback(gptimer_handle_t timer, const
 static void IRAM_ATTR gpio_IRQ_handler(void *args) {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	xSemaphoreGiveFromISR(xSem_btn, &xHigherPriorityTaskWoken);
+}
+
+void flash_init() {
+    esp_err_t ret = nvs_flash_init();
+
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Error (%s) initializing NVS flash", esp_err_to_name(ret));
+    } else {
+        ESP_LOGI(TAG, "NVS flash initialized");
+    }
+
+    xSemaphoreGive(xBlockFlash);
 }
