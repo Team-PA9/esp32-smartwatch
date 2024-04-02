@@ -15,6 +15,8 @@
 
 #include "wifi/wifi_proj.h"
 
+#include "ntp/ntp_proj.h"
+
 #define EXAMPLE_ESP_WIFI_SSID      CONFIG_ESP_WIFI_SSID
 #define EXAMPLE_ESP_WIFI_PASS      CONFIG_ESP_WIFI_PASSWORD
 #define EXAMPLE_ESP_MAXIMUM_RETRY  CONFIG_ESP_MAXIMUM_RETRY
@@ -121,8 +123,8 @@ void wifi_init(void) {
     /* xEventGroupWaitBits() returns the bits before the call returned, hence we can test which event actually
      * happened. */
     if (bits & WIFI_CONNECTED_BIT) {
-        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s",
-                 EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+        ESP_LOGI(TAG, "connected to ap SSID:%s password:%s", EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
+        xTaskCreate(task_ntp_init, "task_ntp_init", 2048, NULL, 5, NULL);
     } else if (bits & WIFI_FAIL_BIT) {
         ESP_LOGI(TAG, "Failed to connect to SSID:%s, password:%s",
                  EXAMPLE_ESP_WIFI_SSID, EXAMPLE_ESP_WIFI_PASS);
@@ -131,4 +133,9 @@ void wifi_init(void) {
     }
 
     xSemaphoreGive(xBlockFlash);
+}
+
+void task_wifi_init(void *pvParameters) {
+    wifi_init();
+    vTaskDelete(NULL);
 }

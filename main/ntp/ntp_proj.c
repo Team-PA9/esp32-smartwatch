@@ -56,3 +56,8 @@ void es_sntp_init() {
         time(&now);
     }
 }
+
+void task_ntp_init(void *pvParameters) {
+    es_sntp_init();
+    vTaskDelete(NULL);
+}

@@ -23,4 +23,6 @@ void time_sync_notification_cb(struct timeval *tv);
 void get_time();
 void es_sntp_init();
 
+void task_ntp_init(void *pvParameters);
+
 #endif

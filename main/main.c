@@ -56,6 +56,7 @@ SemaphoreHandle_t xSem_display = NULL;
 SemaphoreHandle_t xSem_clock = NULL;
 SemaphoreHandle_t xSem_btn = NULL;
 TaskHandle_t xHdl_ME = NULL;
+TaskHandle_t xHdl_WiFi_init = NULL;
 
 SemaphoreHandle_t xBlockFlash = NULL;
 
@@ -106,19 +107,16 @@ void app_main(void) {
     printf("Initialize NVS flash... \n");
     flash_init();
 
-    // Step 1.5 : RTC initialization
+    // Step 1.4 : RTC initialization
     printf("Initialize RTC...\n");
     tz_init();
     
-    // Step 1.6 : WIFI initialization
+    // Step 1.6 : Wi-Fi initialization & NTP synchronization
+    // We use a task to initialize the Wi-Fi asynchronously
     printf("Initialize WIFI...\n");
-    wifi_init();
+    xTaskCreate(task_wifi_init, "task_wifi_init", 4096, NULL, 1, &xHdl_WiFi_init);
 
-    // Step 1.7 : SNTP initialization
-    printf("Initialize SNTP...\n");
-    es_sntp_init(); 
-
-    // Step 1.4 : Bluetooth Low Energy
+    // Step 1.7 : Bluetooth Low Energy
     printf("Initializing Bluetooth Low Energy... \n");
     ble_init();
 
