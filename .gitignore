@@ -8,3 +8,6 @@ managed_components/
 
 .vscode/
 .eclipse/
+
+.cproject
+.project
